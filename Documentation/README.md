@@ -1,5 +1,4 @@
-<!-- filepath: c:\Users\hunkb\OneDrive\Desktop\btq\OS\Moon\Documentation\README.md -->
-# Topological Consensus Networks — Full Draft Overview
+# Topological Consensus Networks
 
 > A complete presentation of the continuous‐ and discrete‐topology formulations, classical and quantum consensus extensions, and diagrammatic cobordism interactions for cryptographic proof in blockchain protocols.
 
@@ -39,7 +38,7 @@ In our system, a fixed set of known nodes is:
 - Trust relationships between nodes are topologically encoded
 - Compliance is tested through mutual verification
 
-By viewing a network's time‐evolution as a simplicial complex in a metric space \((M,\rho)\), we harness *persistent homology* and *cobordism* to characterize global trust dynamics in a coordinate-free, generally covariant manner. This mathematical foundation enables:
+By viewing a network's time‐evolution as a simplicial complex in a metric space $(M,\rho)$, we harness *persistent homology* and *cobordism* to characterize global trust dynamics in a coordinate-free, generally covariant manner. This mathematical foundation enables:
 
 1. Scalable parallel transaction verification
 2. Robustness against collusion and malicious activity
@@ -54,39 +53,39 @@ Our framework unifies classical and quantum topological approaches to achieve a 
 
 ### 2.1 Discrete Consensus Networks
 
-We model a network of nodes as a discrete set residing in a metric space \((M,\rho)\), where each node set \(N\subset M\) is a compact subset. The metric encodes trust relationships between nodes:
+We model a network of nodes as a discrete set residing in a metric space $(M,\rho)$, where each node set $N\subset M$ is a compact subset. The metric encodes trust relationships between nodes:
 
-\[
+$$
   \rho(x,y)\;=\;\text{distrust of node }x\text{ in }y
-\]
+$$
 
 satisfying the metric axioms:
-1. \(\rho(x,y) \geq 0\) and \(\rho(x,y)=0 \iff x=y\)
-2. \(\rho(x,y)=\rho(y,x)\)
-3. \(\rho(x,z) \leq \rho(x,y) + \rho(y,z)\)
+1. $\rho(x,y) \geq 0$ and $\rho(x,y)=0 \iff x=y$
+2. $\rho(x,y)=\rho(y,x)$
+3. $\rho(x,z) \leq \rho(x,y) + \rho(y,z)$
 
-The distrust of a node \(x\) in a sub-network \(N'\subset N\) is defined as:
+The distrust of a node $x$ in a sub-network $N'\subset N$ is defined as:
 
-\[
+$$
   r(x,N') = \frac{1}{|N'|} \sum_{y \in N'} r(x,y)
-\]
+$$
 
 where we average over all pairwise distrusts for a more comprehensive measure.
 
 We construct an **abstract simplicial complex** from the network using either:
-- **Čech complex** \(\check{C}_\alpha(N)\): Built from intersections of balls centered at nodes
-- **Vietoris-Rips complex** \(R_\alpha(N)\): Built from pairwise distances between nodes
+- **Čech complex** $\check{C}_\alpha(N)$: Built from intersections of balls centered at nodes
+- **Vietoris-Rips complex** $R_\alpha(N)$: Built from pairwise distances between nodes
 
 These complexes capture the topological properties of the network and allow us to analyze trust patterns through topological methods.
 
-Nodes make decisions based on trust thresholds \(\delta_i\):
+Nodes make decisions based on trust thresholds $\delta_i$:
 
-\[
+$$
   f_i(N') = \begin{cases}
     1,\, r_i(N') \leq \delta_i \\
     0,\, r_i(N') > \delta_i
   \end{cases}
-\]
+$$
 
 This binary decision framework allows nodes to autonomously determine whether to cooperate with a sub-network.
 
@@ -124,19 +123,19 @@ This reciprocal verification mechanism fosters mutual benefit and prevents malic
 
 ### 3.1 Network Evolution as Histories
 
-We embed our discrete consensus networks into a continuous topological framework by defining a **network history**. This is accomplished by constructing a manifold \(\mathcal{M}\) representing the time-evolution of network complexes:
+We embed our discrete consensus networks into a continuous topological framework by defining a **network history**. This is accomplished by constructing a manifold $\mathcal{M}$ representing the time-evolution of network complexes:
 
-\[
+$$
   \mathcal{M} = \mathbb{R} \times \mathcal{Y} = \mathbb{R} \times (\mathcal{N} \times \mathcal{T})
-\]
+$$
 
-where \(\mathcal{N}\) is the set of nodes, \(\mathcal{T}\) is the set of transactions, and \(\mathbb{R}\) represents time. This construction allows us to view network evolution as a **cobordism** between initial and final network states.
+where $\mathcal{N}$ is the set of nodes, $\mathcal{T}$ is the set of transactions, and $\mathbb{R}$ represents time. This construction allows us to view network evolution as a **cobordism** between initial and final network states.
 
-A cobordism is a quintuple \((W; M, N, i, j)\) where:
-- \(W\) is an \((n+1)\)-dimensional compact manifold with boundary
-- \(M, N\) are compact \(n\)-manifolds
-- \(i: M \hookrightarrow \partial W\) and \(j: N \hookrightarrow \partial W\) are embeddings with disjoint images
-- \(i(M) \sqcup j(N) = \partial W\)
+A cobordism is a quintuple $(W; M, N, i, j)$ where:
+- $W$ is an $(n+1)$-dimensional compact manifold with boundary
+- $M, N$ are compact $n$-manifolds
+- $i: M \hookrightarrow \partial W$ and $j: N \hookrightarrow \partial W$ are embeddings with disjoint images
+- $i(M) \sqcup j(N) = \partial W$
 
 The history of a network traces out a manifold in "networktime" that records all bifurcations (splits) and recombinations resulting from trust-based decisions during consensus rounds.
 
@@ -159,28 +158,28 @@ def build_history_complex(complexes, times):
 
 The topology of network histories carries crucial information about trust dynamics. We use homology and cohomology groups to characterize these topological properties.
 
-The distrust in a network history \(\mathcal{H}\) is measured by its genus:
+The distrust in a network history $\mathcal{H}$ is measured by its genus:
 
-\[
+$$
   r(\mathcal{H}) = 1 - \frac{1}{2}\chi(\mathcal{H})
-\]
+$$
 
-where \(\chi(\mathcal{H})\) is the Euler characteristic defined as:
+where $\chi(\mathcal{H})$ is the Euler characteristic defined as:
 
-\[
+$$
   \chi(\mathcal{H}) = \sum_{a=0}^{\dim \mathcal{H}} (-1)^a b_a(\mathcal{H}) = \sum_{a=0}^{\dim \mathcal{H}} (-1)^a \dim H^a(\mathcal{H})
-\]
+$$
 
-The Betti numbers \(b_n = \dim H^n\) count the number of \(n\)-dimensional "holes" in the manifold:
-- \(b_0\): connected components (separate networks)
-- \(b_1\): loops (cycles of trust/distrust)
-- \(b_2\): voids (higher-dimensional structures)
+The Betti numbers $b_n = \dim H^n$ count the number of $n$-dimensional "holes" in the manifold:
+- $b_0$: connected components (separate networks)
+- $b_1$: loops (cycles of trust/distrust)
+- $b_2$: voids (higher-dimensional structures)
 
-For combined network histories \(\mathcal{H}_i\) and \(\mathcal{H}_j\), the distrust is:
+For combined network histories $\mathcal{H}_i$ and $\mathcal{H}_j$, the distrust is:
 
-\[
+$$
   r(\mathcal{H}_i \cup_\phi \mathcal{H}_j) = 1 - \frac{1}{2} \bigg( \chi(\mathcal{H}_i) + \chi(\mathcal{H}_j) - \chi(\partial \mathcal{H}_i) \bigg)
-\]
+$$
 
 <figure>
   ![Persistence Diagram](./figures/full/persistence_placeholder.png)
@@ -191,10 +190,10 @@ For combined network histories \(\mathcal{H}_i\) and \(\mathcal{H}_j\), the dist
 
 Network histories can be combined through surgery theory, allowing separate networks to interact and merge based on topological trust compatibility. This process is analogous to particle interactions in quantum field theory.
 
-For networks of type \(N \rightarrow M\) (indicating N initial networks evolving to M final networks), we define interaction types:
-- \(1 \rightarrow 1\): Single network evolution (bifurcation and recombination)
-- \(2 \rightarrow 2\): Two networks interacting
-- \(3 \rightarrow 1\): Three networks merging into one
+For networks of type $N \rightarrow M$ (indicating N initial networks evolving to M final networks), we define interaction types:
+- $1 \rightarrow 1$: Single network evolution (bifurcation and recombination)
+- $2 \rightarrow 2$: Two networks interacting
+- $3 \rightarrow 1$: Three networks merging into one
 
 The combinatoric series of all possible interactions within a given type provides a complete description of possible network evolutions. Networks autonomously select interaction partners by minimizing genus (maximizing trust).
 
@@ -250,13 +249,13 @@ Advantages include:
 
 We approach network history evolution using a state-sum (path integral) formulation over cobordism classes:
 
-\[
+$$
   Z(C) = \int_C \exp\{i\,S[C]\}
-\]
+$$
 
-where \(S[C]\) is a discrete curvature-like action analogous to the Einstein-Hilbert action in general relativity, but defined on our network history manifold. This quantum approach assigns probability amplitudes to different possible network evolutions.
+where $S[C]$ is a discrete curvature-like action analogous to the Einstein-Hilbert action in general relativity, but defined on our network history manifold. This quantum approach assigns probability amplitudes to different possible network evolutions.
 
-The action \(S[C]\) incorporates:
+The action $S[C]$ incorporates:
 - Topological genus (measuring distrust)
 - Node compliance history
 - Transaction verification efficiency
@@ -264,7 +263,7 @@ The action \(S[C]\) incorporates:
 
 ### 5.2 Quantum Topological Invariants
 
-Cobordism classes \(\Omega_{N\to M}\) encode allowed network interactions (e.g., \(3\to1\) merges), with genus \(g\) measuring distrust-driven splittings. Quantum topological invariants extend classical invariants through:
+Cobordism classes $\Omega_{N\to M}$ encode allowed network interactions (e.g., $3\to1$ merges), with genus $g$ measuring distrust-driven splittings. Quantum topological invariants extend classical invariants through:
 
 1. **Quantum Homology Groups**: Capture quantum superpositions of topological features
 2. **Quantum Euler Characteristics**: Generalize classical Euler characteristics to quantum network histories
