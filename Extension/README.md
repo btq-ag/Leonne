@@ -27,9 +27,9 @@ Below we detail the mathematical setup, key equations, algorithmic pseudocode, a
 ## 1. Network Histories and Cobordisms
 
 Let each discrete consensus network at time $$t$$ be an abstract simplicial complex $$\mathfrak{C}(t)$$ immersed in a trust‐metric space. As $$t$$ varies continuously, the union  
-$$
-   \mathcal{M} = \bigcup_{t\in[0,T]} \{t\}\times \mathfrak{C}(t)
-$$
+
+$$\mathcal{M} = \bigcup_{t\in[0,T]} \{t\}\times \mathfrak{C}(t)$$
+
 is a manifold with boundary 
 $$
    \partial\mathcal{M} \;=\; \mathfrak{C}(0)\;\bigsqcup\;\mathfrak{C}(T).
