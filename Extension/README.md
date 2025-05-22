@@ -1,7 +1,6 @@
 
 # Continuous Network Histories as Cobordisms
-   We view each closed consensus network's time‐unfolding as a manifold $$\mathcal{M}$$ with boundary components its initial and final complexes.  Transitions (splits/merges) appear as cobordisms (§2.2.1) between slices of constant "network time."**Network Histories as Cobordisms**  
-   We view each closed consensus network's time‐unfolding as a manifold $$\mathcal{M}$$ with boundary components its initial and final complexes.  Transitions (splits/merges) appear as cobordisms (§2.2.1) between slices of constant "network time."-Topology Extensions to Topological Consensus Networks
+   We view each closed consensus network's time‐unfolding as a manifold $$\mathcal{M}$$ with boundary components its initial and final complexes.  Transitions (splits/merges) appear as cobordisms (§2.2.1) between slices of constant "network time."
 
 > Sub-repository of Topological Consensus Networks: continuous‐time and continuous‐space formulations, history cobordisms, and multiscale homology of network evolution.
 
@@ -12,7 +11,7 @@
 While the core TCN framework (§2.1–2.1.3 in the main repo) treats consensus networks as evolving simplicial complexes over a discrete trust filtration, these continuous‐topology extensions (§2.2 of the Full, Old draft) lift that picture to a continuum:
 
 1. **Network Histories as Cobordisms**  
-   We view each closed consensus network’s time‐unfolding as a manifold $\mathcal{M}$ with boundary components its initial and final complexes.  Transitions (splits/merges) appear as cobordisms (§2.2.1) between slices of constant “network time.”
+   We view each closed consensus network’s time‐unfolding as a manifold $$\mathcal{M}$$ with boundary components its initial and final complexes.  Transitions (splits/merges) appear as cobordisms (§2.2.1) between slices of constant “network time.”
 
 2. **Combinatoric History Scaling**  
    By discretizing the continuous history at increasingly fine time‐resolutions, we build an inverse system of simplicial complexes whose limits capture large‐scale network reconfigurations (§2.2.2).
@@ -31,16 +30,14 @@ Let each discrete consensus network at time $$t$$ be an abstract simplicial comp
 $$\mathcal{M} = \bigcup_{t\in[0,T]} \{t\}\times \mathfrak{C}(t)$$
 
 is a manifold with boundary 
-$$
-   \partial\mathcal{M} \;=\; \mathfrak{C}(0)\;\bigsqcup\;\mathfrak{C}(T).
-$$
+
+$$\partial\mathcal{M} \;=\; \mathfrak{C}(0)\;\bigsqcup\;\mathfrak{C}(T).$$
 
 A *cobordism* is an equivalence relation on the class of compact manifolds of the same dimension, providing a set of instructions for a manifold $$M$$ to evolve over time into another manifold $$N$$ while preserving their boundaries. Splittings or recombinations of networks appear as cobordisms between level sets:
-$$
-   \mathfrak{C}(t_1)\;\sim_{\mathrm{cob}}\;\mathfrak{C}(t_2)
+
+$$\mathfrak{C}(t_1)\;\sim_{\mathrm{cob}}\;\mathfrak{C}(t_2)
    \quad\Longleftrightarrow\quad
-   [t_1,t_2]\times\mathfrak{C}\subset \mathcal{M}.
-$$
+   [t_1,t_2]\times\mathfrak{C}\subset \mathcal{M}.$$
 
 For topological consensus networks, these cobordisms represent the continuous evolution arising from trust dynamics, capturing how networks bifurcate due to breaches in trust and potentially recombine later.
 <figure>
@@ -53,14 +50,13 @@ For topological consensus networks, these cobordisms represent the continuous ev
 ## 2. Combinatoric Scaling of Histories
 
 To algorithmically handle continuous time, we sample the history at $$N$$ discrete timestamps,
-$$
-  0 = t_0 < t_1 < \cdots < t_N = T,
-$$
+
+$$0 = t_0 < t_1 < \cdots < t_N = T,$$
+
 and form complexes $$\mathfrak{C}_k = \mathfrak{C}(t_k)$$. The *history complex* is then the union of prisms
-$$
-  \mathrm{Hist}_N(\mathcal{N})
-    = \bigcup_{k=1}^N \bigl[t_{k-1},t_k\bigr] \times \mathfrak{C}_k.
-$$
+
+$$\mathrm{Hist}_N(\mathcal{N})
+    = \bigcup_{k=1}^N \bigl[t_{k-1},t_k\bigr] \times \mathfrak{C}_k.$$
 
 This discrete approximation allows us to capture the manifold structure through a sequence of simplicial slices. The history of a network is not uniquely determined by its boundary conditions alone—there exists a degeneracy where different histories can have identical boundary conditions. This reflects real-world scenarios where networks may split and recombine through various intermediate states but arrive at the same final configuration.
 
