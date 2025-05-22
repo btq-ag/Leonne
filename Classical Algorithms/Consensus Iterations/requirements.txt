@@ -1,0 +1,5 @@
+numpy>=1.19.0
+matplotlib>=3.3.0
+networkx>=2.5.0
+seaborn>=0.11.0
+cryptography>=3.4.0
