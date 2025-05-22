@@ -16,7 +16,7 @@ Léonne (IPA: /leɪˈɔn/) is a collection of topological algorithms that comput
 ## Table of Contents
 
 - [Getting Started](#getting-started)
-- [Documentation](#documentation)
+- [Features](#features)
 - [Installation](#installation)
 - [License](#license)
 
