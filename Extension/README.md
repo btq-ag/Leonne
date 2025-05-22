@@ -55,8 +55,7 @@ $$0 = t_0 < t_1 < \cdots < t_N = T,$$
 
 and form complexes $$\mathfrak{C}_k = \mathfrak{C}(t_k)$$. The *history complex* is then the union of prisms
 
-$$\mathrm{Hist}_N(\mathcal{N})
-    = \bigcup_{k=1}^N \bigl[t_{k-1},t_k\bigr] \times \mathfrak{C}_k.$$
+$$\mathrm{Hist}_N(\mathcal{N}) = \bigcup_{k=1}^N \bigl[t_{k-1},t_k\bigr] \times \mathfrak{C}_k.$$
 
 This discrete approximation allows us to capture the manifold structure through a sequence of simplicial slices. The history of a network is not uniquely determined by its boundary conditions alone—there exists a degeneracy where different histories can have identical boundary conditions. This reflects real-world scenarios where networks may split and recombine through various intermediate states but arrive at the same final configuration.
 
@@ -104,10 +103,7 @@ Key invariants from persistence homology:
 
 **Equation (3.1).** Worldsheet homology groups
 
-$$
-  H_n\bigl(\mathrm{Hist}_N\bigr)
-   = \bigoplus_{(b,d)\in \mathrm{Dgm}_n} \Bbbk\,,
-$$
+$$ H_n\bigl(\mathrm{Hist}_N\bigr) = \bigoplus_{(b,d)\in \mathrm{Dgm}_n} \Bbbk\,,$$
 
 with $\Bbbk$ the field coefficients.
 
@@ -138,11 +134,7 @@ def history_persistence(history_complex):
 
 As $$N\to\infty$$, the finite approximations $$\mathrm{Hist}_N$$ converge under the bottleneck distance to the true manifold. By stability of persistence,
 
-$$
-  d_B\bigl(\mathrm{Dgm}_n(\mathrm{Hist}_N), \mathrm{Dgm}_n(\mathcal{M})\bigr)
-   \;\le\; \|h_N - h\|_\infty
-   \;\xrightarrow[N\to\infty]{} 0.
-$$
+$$d_B\bigl(\mathrm{Dgm}_n(\mathrm{Hist}_N), \mathrm{Dgm}_n(\mathcal{M})\bigr)\;\le\; \|h_N - h\|_\infty\;\xrightarrow[N\to\infty]{} 0.$$
 
 For combined network histories $$\mathcal{H}_i$$ and $$\mathcal{H}_j$$ that have been glued along open subsets with diffeomorphisms $$\phi: \partial\mathcal{H}_i \to \partial\mathcal{H}_j$$, the distrust of the combined history is given by:
 
@@ -165,13 +157,11 @@ For a client to use a network service, they evaluate:
 
 A binary decision function for network histories can be defined as:
 
-$$
-f_{\mathcal{H}}(\mathcal{Q}) = 
+$$f_{\mathcal{H}}(\mathcal{Q}) = 
 \begin{cases}
 1,\, r(\mathcal{Q}) \leq \delta_{\mathcal{H}} \\
 0,\, r(\mathcal{Q}) > \delta_{\mathcal{H}}
-\end{cases}
-$$
+\end{cases}$$
 
 where $$\delta_{\mathcal{H}}$$ is a security parameter agreed upon by the network based on its history.
 
