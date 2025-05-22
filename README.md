@@ -25,8 +25,8 @@ Léonne (IPA: /leɪˈɔn/) is a collection of topological algorithms that comput
 
 Léonne enables you to run consensus and network partitioning algorithms for a collection of known consensus networks with the goal of performing parallel cryptographic proof for simulated multi-blockchain environments. 
 
-- Visit our [algorithms modules](https://github.com/btq-ag/Leonne/tree/main/Algorithm%20Modules) to get started with consensus protocols.
-- Visit the [theoretical showcase](https://github.com/btq-ag/Leonne/blob/main/Theory%20Showcase/Topological%20Consensus%20Networks.pdf) which represents the mathematical and algorithmic background needed to run the algorithms.
+- Visit our [algorithms modules](https://github.com/btq-ag/Leonne/tree/main/Classical%20Algorithms) to get started with consensus protocols.
+- Visit the [theoretical showcase](https://github.com/btq-ag/Leonne/tree/main/Documentation) which represents the mathematical and algorithmic background needed to run the algorithms.
 
 ## Features
 
