@@ -1,0 +1,9 @@
+Starting quantum Betti test...
+Test completed successfully!
+..
+Betti numbers at filtration value 0.5:
+Beta0 (connected components): 1
+Beta1 (holes): 1
+Beta2 (voids): 0
+Creating visualization...
+Test complete! Visualization saved to quantum_betti_test.png
