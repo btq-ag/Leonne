@@ -51,13 +51,7 @@ Orbit      Orb_G(x) = { g·x | g∈G }
 Stabiliser Stab_G(x) = { g | g·x = x }
 ```
 GFY replaces the *uniform* random index selection at step `i` by a
-**group-orbit–weighted** choice:
-
-\[
-\Pr(j=i \text{ swap}) = \frac{1}{|\text{Orb}_G(a_i) ∖ \text{Stab}_G(a_i)|}.
-\]
-
-Multiplying the inverse orbit sizes yields the final permutation probability,
+**group-orbit–weighted** choice. Multiplying the inverse orbit sizes yields the final permutation probability,
 allowing exact diagnostic checks.
 
 ---
