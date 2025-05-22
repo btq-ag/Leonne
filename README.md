@@ -35,10 +35,10 @@ Léonne enables you to run consensus and network partitioning algorithms for a c
 * Built-in remote development support inspired by distributed test-nets. Enjoy the benefits of a "local" experience, and seamlessly gain the full power of a remote cluster.
 * Built-in analytics terminal, so you can execute trust-related commands in your workspace without leaving Léonne.
 
-![Network Evolution](https://github.com/btq-ag/Leonne/blob/main/Plots/network_evolution_3d_simplices_v5.gif)
 ![Landscape](https://github.com/btq-ag/Leonne/blob/main/Plots/network_complex_with_landscape_variation1.gif)
 ![Community](https://github.com/btq-ag/Leonne/blob/main/Plots/topological_partitioning_complex_w5.gif)
 ![Blockchain](https://github.com/btq-ag/Leonne/blob/main/Plots/blockchain_network_visualization.gif)
+![Network Evolution](https://github.com/btq-ag/Leonne/blob/main/Plots/network_evolution_3d_simplices_v5.gif)
 
 ## Installation
 
