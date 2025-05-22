@@ -1,4 +1,4 @@
-![ui](Images/logo_extended.png)
+![ui](Logos/logo_extended.png)
 
 <h4 align="center">Modular Consensus Networks</h4>
 
