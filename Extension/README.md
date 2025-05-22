@@ -1,5 +1,7 @@
 
-# Continuous‐Topology Extensions to Topological Consensus Networks
+# Continuous Network Histories as Cobordisms
+   We view each closed consensus network's time‐unfolding as a manifold $$\mathcal{M}$$ with boundary components its initial and final complexes.  Transitions (splits/merges) appear as cobordisms (§2.2.1) between slices of constant "network time."**Network Histories as Cobordisms**  
+   We view each closed consensus network's time‐unfolding as a manifold $$\mathcal{M}$$ with boundary components its initial and final complexes.  Transitions (splits/merges) appear as cobordisms (§2.2.1) between slices of constant "network time."-Topology Extensions to Topological Consensus Networks
 
 > Sub-repository of Topological Consensus Networks: continuous‐time and continuous‐space formulations, history cobordisms, and multiscale homology of network evolution.
 
@@ -16,7 +18,7 @@ While the core TCN framework (§2.1–2.1.3 in the main repo) treats consensus n
    By discretizing the continuous history at increasingly fine time‐resolutions, we build an inverse system of simplicial complexes whose limits capture large‐scale network reconfigurations (§2.2.2).
 
 3. **Topological Invariants of Histories**  
-   Persistent homology in time (§2.2.3) yields *worldsheet* Betti numbers, $\beta_n(\mathcal{M})$, encoding the stability and recombination patterns of consensus over long runs.
+   Persistent homology in time (§2.2.3) yields *worldsheet* Betti numbers, $$\beta_n(\mathcal{M})$$, encoding the stability and recombination patterns of consensus over long runs.
 
 Below we detail the mathematical setup, key equations, algorithmic pseudocode, and placeholder figures to integrate into your repo—feel free to renumber or rename these as needed.
 
@@ -24,45 +26,45 @@ Below we detail the mathematical setup, key equations, algorithmic pseudocode, a
 
 ## 1. Network Histories and Cobordisms
 
-Let each discrete consensus network at time $t$ be an abstract simplicial complex $\mathfrak{C}(t)$ immersed in a trust‐metric space. As $t$ varies continuously, the union  
-\[
+Let each discrete consensus network at time $$t$$ be an abstract simplicial complex $$\mathfrak{C}(t)$$ immersed in a trust‐metric space. As $$t$$ varies continuously, the union  
+$$
    \mathcal{M} = \bigcup_{t\in[0,T]} \{t\}\times \mathfrak{C}(t)
-\]
+$$
 is a manifold with boundary 
-\[
+$$
    \partial\mathcal{M} \;=\; \mathfrak{C}(0)\;\bigsqcup\;\mathfrak{C}(T).
-\]
+$$
 
-A *cobordism* is an equivalence relation on the class of compact manifolds of the same dimension, providing a set of instructions for a manifold $M$ to evolve over time into another manifold $N$ while preserving their boundaries. Splittings or recombinations of networks appear as cobordisms between level sets:
-\[
+A *cobordism* is an equivalence relation on the class of compact manifolds of the same dimension, providing a set of instructions for a manifold $$M$$ to evolve over time into another manifold $$N$$ while preserving their boundaries. Splittings or recombinations of networks appear as cobordisms between level sets:
+$$
    \mathfrak{C}(t_1)\;\sim_{\mathrm{cob}}\;\mathfrak{C}(t_2)
    \quad\Longleftrightarrow\quad
    [t_1,t_2]\times\mathfrak{C}\subset \mathcal{M}.
-\]
+$$
 
 For topological consensus networks, these cobordisms represent the continuous evolution arising from trust dynamics, capturing how networks bifurcate due to breaches in trust and potentially recombine later.
 <figure>
   ![Cobordism Illustration](./Handle.png)
-  <figcaption>Figure 1. A sketch of network history $\mathcal{M}$ as a cobordism between initial and final complexes. Here we see a cobordism between a disk and a modified disk with a handle, characterizing how network topology evolves through time.</figcaption>
+  <figcaption>Figure 1. A sketch of network history $$\mathcal{M}$$ as a cobordism between initial and final complexes. Here we see a cobordism between a disk and a modified disk with a handle, characterizing how network topology evolves through time.</figcaption>
 </figure>
 
 ---
 
 ## 2. Combinatoric Scaling of Histories
 
-To algorithmically handle continuous time, we sample the history at $N$ discrete timestamps,
-\[
+To algorithmically handle continuous time, we sample the history at $$N$$ discrete timestamps,
+$$
   0 = t_0 < t_1 < \cdots < t_N = T,
-\]
-and form complexes $\mathfrak{C}_k = \mathfrak{C}(t_k)$. The *history complex* is then the union of prisms
-\[
+$$
+and form complexes $$\mathfrak{C}_k = \mathfrak{C}(t_k)$$. The *history complex* is then the union of prisms
+$$
   \mathrm{Hist}_N(\mathcal{N})
     = \bigcup_{k=1}^N \bigl[t_{k-1},t_k\bigr] \times \mathfrak{C}_k.
-\]
+$$
 
 This discrete approximation allows us to capture the manifold structure through a sequence of simplicial slices. The history of a network is not uniquely determined by its boundary conditions alone—there exists a degeneracy where different histories can have identical boundary conditions. This reflects real-world scenarios where networks may split and recombine through various intermediate states but arrive at the same final configuration.
 
-As $N\to\infty$, these discrete approximations converge (in the Vietoris–Rips sense) to the continuous manifold $\mathcal{M}$, capturing all topological features of the network's evolution.
+As $$N\to\infty$$, these discrete approximations converge (in the Vietoris–Rips sense) to the continuous manifold $$\mathcal{M}$$, capturing all topological features of the network's evolution.
 
 **Algorithm 1.** Discrete history construction  
 ```python
@@ -88,21 +90,21 @@ def build_history_complex(complexes, times):
 
 ## 3. Persistent Homology of Histories
 
-We compute *worldsheet* persistent homology on the history complex $\mathrm{Hist}_N(\mathcal{N})$ to extract topological invariants that characterize trust dynamics:
+We compute *worldsheet* persistent homology on the history complex $$\mathrm{Hist}_N(\mathcal{N})$$ to extract topological invariants that characterize trust dynamics:
 
-1. Define a height function $h: \mathrm{Hist}_N \to [0,T]$ by projection onto the time coordinate.
-2. Build a sublevel filtration $F_\tau = h^{-1}([0,\tau])$ for $\tau\in[0,T]$.
-3. Compute persistence diagrams $\mathrm{Dgm}_n$ for each dimension $n=0,1,2,\dots$.
+1. Define a height function $$h: \mathrm{Hist}_N \to [0,T]$$ by projection onto the time coordinate.
+2. Build a sublevel filtration $$F_\tau = h^{-1}([0,\tau])$$ for $$\tau\in[0,T]$$.
+3. Compute persistence diagrams $$\mathrm{Dgm}_n$$ for each dimension $$n=0,1,2,\dots$$.
 
-These topological invariants quantify the distrust or trust in network histories through measures such as genus $g$ and Euler characteristic $\chi$, where the distrust of a consensus network history is defined as:
+These topological invariants quantify the distrust or trust in network histories through measures such as genus $$g$$ and Euler characteristic $$\chi$$, where the distrust of a consensus network history is defined as:
 
-\[ r(\mathcal{H}) = 1 - \frac{1}{2}\chi(\mathcal{H}) \]
+$$ r(\mathcal{H}) = 1 - \frac{1}{2}\chi(\mathcal{H}) $$
 
 Key invariants from persistence homology:
 
-* $\beta_0(\tau)$: number of connected worldsheet components (independent network segments through time).
-* $\beta_1(\tau)$: loops in the history (network splits that recombine).
-* Global Betti numbers: $\beta_n(\mathrm{Hist}_N)$ as $\tau\to T$ tracks long‐term trust stability.
+* $$\beta_0(\tau)$$: number of connected worldsheet components (independent network segments through time).
+* $$\beta_1(\tau)$$: loops in the history (network splits that recombine).
+* Global Betti numbers: $$\beta_n(\mathrm{Hist}_N)$$ as $$\tau\to T$$ tracks long‐term trust stability.
 
 **Equation (3.1).** Worldsheet homology groups
 
@@ -138,7 +140,7 @@ def history_persistence(history_complex):
 
 ## 4. Convergence & Continuum Limits
 
-As $N\to\infty$, the finite approximations $\mathrm{Hist}_N$ converge under the bottleneck distance to the true manifold. By stability of persistence,
+As $$N\to\infty$$, the finite approximations $$\mathrm{Hist}_N$$ converge under the bottleneck distance to the true manifold. By stability of persistence,
 
 $$
   d_B\bigl(\mathrm{Dgm}_n(\mathrm{Hist}_N), \mathrm{Dgm}_n(\mathcal{M})\bigr)
@@ -146,7 +148,7 @@ $$
    \;\xrightarrow[N\to\infty]{} 0.
 $$
 
-For combined network histories $\mathcal{H}_i$ and $\mathcal{H}_j$ that have been glued along open subsets with diffeomorphisms $\phi: \partial\mathcal{H}_i \to \partial\mathcal{H}_j$, the distrust of the combined history is given by:
+For combined network histories $$\mathcal{H}_i$$ and $$\mathcal{H}_j$$ that have been glued along open subsets with diffeomorphisms $$\phi: \partial\mathcal{H}_i \to \partial\mathcal{H}_j$$, the distrust of the combined history is given by:
 
 $$
 r(\mathcal{H}_i \cup_\phi \mathcal{H}_j) = 1 - \frac{1}{2}\bigg(\chi(\mathcal{H}_i) + \chi(\mathcal{H}_j) - \chi(\partial\mathcal{H}_i)\bigg)
@@ -175,7 +177,7 @@ f_{\mathcal{H}}(\mathcal{Q}) =
 \end{cases}
 $$
 
-where $\delta_{\mathcal{H}}$ is a security parameter agreed upon by the network based on its history.
+where $$\delta_{\mathcal{H}}$$ is a security parameter agreed upon by the network based on its history.
 
 <figure>
   ![Trust Intersection](./Real%20intersection.png)
