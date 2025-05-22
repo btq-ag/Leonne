@@ -1,0 +1,3435 @@
+Distributed consensus networks
+Peter P. Rohde1, 2, 3, 4, ∗
+1BTQ Technologies, 16-104 555 Burrard Street, Vancouver BC, V7X 1M8 Canada
+2Center for Engineered Quantum Systems, School of Mathematical & Physical Sciences,
+Macquarie University, NSW 2109, Australia
+3Centre of Excellence in Engineered Quantum Systems, Brisbane,
+Australia
+4Hearne Institute for Theoretical Physics, Department of Physics & Astronomy,
+Louisiana State University, Baton Rouge LA, United States
+Blockchains rely on distributed consensus algorithms to decide whether proposed transactions
+are valid and should be added to the blockchain. The purpose of consensus is to
+act as an independent arbiter for transactions, robust against adversarial manipulation.
+This can be achieved by choosing random subsets of nodes to form consensus sets. In
+an economy where consensus is the commodity, consensus must be secure, computationally
+efficient, fast and cheap. Most current blockchains operate in the context of open
+networks, where algorithms such as proof-of-work are highly inefficient and resourceintensive,
+presenting long-term scalability issues. Inefficient solutions to allocating consensus
+sets equates to high transaction costs and slow transaction times. Closed networks
+of known nodes afford more efficient and robust solutions. We describe a secure distributed
+algorithm for solving the random subset problem in networks of known nodes,
+bidding to participate in consensus for which they are rewarded, where the randomness
+of set allocation cannot be compromised unless all nodes collude. Unlike proof-of-work,
+the algorithm allocates all nodes to consensus sets, ensuring full resource utilisation,
+and is highly efficient. The protocol follows self-enforcing rules where adversarial behaviour
+only results in self-exclusion. Signature-sets produced by the protocol act as
+timestamped, cryptographic proofs-of-consensus, a commodity with market-determined
+value. The protocol is highly strategically robust against collusive adversaries, affording
+subnetworks defence against denial-of-service and majority takeover.
+CONTENTS
+I. Overview 2
+II. Consensus 4
+A. Compliance 5
+III. Random subset problem 5
+A. Centralised algorithm 7
+B. Proof-of-work 7
+C. Secure shared randomness 8
+D. Secure random subsets 8
+IV. Consensus assignment problem 8
+A. Consensus assignment graphs 9
+1. Initial assignment 9
+B. Uniform consensus sampling 10
+1. Fisher-Yates shuffle 10
+2. Graph randomisation 11
+3. Sampling via random bitstreams 11
+V. Distributed consensus networks 12
+A. Model 12
+B. Protocol 12
+1. Voting 13
+2. Network acceptance 14
+C. Proof-of-consensus 14
+D. Network policy 15
+E. Resource consumption 15
+VI. Quantum consensus networks 15
+A. Entropy 16
+∗ peter@peterrohde.org; https://www.peterrohde.org
+1. Entropy sources: quantum vs. classical 17
+2. Entropy addition 17
+B. Quantum random oracles 17
+C. Quantum key distribution (QKD) 18
+1. Consensus protocol 18
+D. Interactive proofs of quantumness 19
+1. Trapdoor claw-free (TCF) functions 19
+2. The LWE problem 19
+3. Interactive proof protocol 20
+4. Consensus protocol 21
+VII. Socioeconomics 22
+A. Economics 22
+B. Strategic considerations 22
+C. Network democratisation 22
+VIII. Distributed computing 22
+A. Protocols 22
+B. Distributed filesystems 23
+1. Object stores 23
+2. Distributed erasure codes 24
+C. Distributed computational models 26
+1. MapReduce model 26
+2. Virtual thread pools 26
+3. Transactional model 26
+D. Distributed signature authorities 26
+E. Liquid networks 26
+IX. Blockchains 27
+X. Conclusion 27
+References 27
+XI. Ideas that went nowhere 29
+A. Consensus group 29
+1. Generalised Fisher-Yates shuffle for finite groups 29
+2
+2. Uniformly sampling the consensus group (old) 30
+3. Counting bipartite graph realisations 31
+4. Initial assignment 32
+B. Randomised timing 32
+C. Changes to do & consistency 33
+D. Miscellaneous notes 2 33
+E. Miscellaneous notes 34
+XII. Error correcting codes (ECC) 36
+XIII. Topology 36
+XIV. Structure of consensus space 36
+XV. Consensus hierarchies 37
+XVI. Consensus time 37
+1. Consensus-time convergence 38
+I. OVERVIEW
+Introduction
+Decentralised finance (DeFi) is the longstanding vision
+of a truly global and borderless financial system,
+the promise of universal, low-cost access to banking services
+and international financial markets, eliminating geographic
+and socio-political barriers of entry and reliance
+upon centralised financial institutions, subverting
+the power-base of monopolistic and hegemonic access to
+capital, facilitating a highly competitive global economic
+landscape.
+Smart-contracts enabling arbitrary, self-executing algorithmic
+exchange facilitate the synthesis of sophisticated
+financial instruments in the absence of conventional
+centralised exchanges. The algorithmic versatility
+of smart-contracts affords their use as a primitive in the
+construction of sophisticated distributed protocols such
+as Decentralised Autonomous Organisations (DAOs).
+Consensus
+In a decentralised environment transactions are approved
+via consensus (Sec. II), whereby a small number
+of randomly chosen network nodes form consensus sets,
+collectively acting as delegates for the network to authorise
+transactions by majority vote. Consensus outcomes
+should with high probability reflect the network majority,
+a function of consensus set size and the ratio of dishonest
+nodes.
+C
+N
+The randomisation of nodes forming consensus is vital
+to ensure the integrity of consensus outcomes (Sec. III).
+If the choice of consensus nodes were known in advance
+this would provide avenues for malicious parties to
+compromise security by targeting the known allocation.
+Randomisation effectively erases assignment information,
+eliminating all avenues for strategic alignment.
+3
+Distributed algorithms for assigning consensus sets
+must be secure in the sense that their randomisation cannot
+be compromised by malicious parties.
+Proof-of-work
+The Bitcoin protocol (Nakamoto, 2008) first introduced
+proof-of-work (PoW) as mechanism for securely
+randomly selecting a small number of network nodes at
+random to form consensus (Sec. III.B). This protocol
+operates in the context of a network of unknown and
+unidentifiable nodes in which anyone may freely participate.
+The algorithm requires nodes to compete to solve
+inverse-hashing problems, a randomised algorithm that
+effectively chooses winners by lottery.
+While the proof-of-work mining algorithm provides an
+ingenious solution to the random subset problem it is
+highly inefficient, resulting in enormous net energy consumption
+to maintain the network. Currently, annualised
+energy consumption of the Bitcoin network is ∼155TWh
+(Cambridge Centre for Alternative Finance, 2023)1, comparable
+to the total electricity consumption of medium
+sized countries2.
+The inefficiency of proof-of-work presents a significant
+obstacle for scalability, motivating the development of
+more efficient alternate consensus algorithms. Proof-ofstake
+(PoS) (Bentov et al., 2017; King and Nadal, 2012) is
+a leading alternative, recently adopted by the Ethereum
+network to improve scalability and reduce transaction
+costs. Ethereum’s (Buterin, 2013) transition to proof-ofstake,
+famously known as The Merge, reduced its annualised
+energy consumption from ∼21TWh (PoW) to
+∼2GWh (PoS) (Cambridge Centre for Alternative Finance,
+2023)3, a spontaneous reduction in energy consumption
+of 99.99%. However, despite its radically improved
+energy efficiency, proof-of-stake has been criticised
+for affording reduced security owing to its increased
+vulnerability to manipulation and reduced level of randomisation.
+Proof-of-work based on quantum sampling
+problems has also been investigated as a means for enhanced
+energy efficiency (Singh et al., 2023).
+Network structure
+* Anonymous vs identifiable nodes
+* Open vs closed
+* Random subset problem
+* Key establishment
+Consensus assignment problem
+1 Estimate as of January 19, 2024.
+2 Estimated annual electricity consumption of Sweden (2022):
+∼164TWh.
+3 Estimates immediately prior and subsequent to The Merge on
+September 15, 2022.
+Networks comprising known nodes afford more efficient
+distributed algorithms for solving the random
+subset problem. By utilising secure shared randomness
+(Sec. III.C) all network nodes may be simultaneously allocated
+to random subsets (Sec. III.D), ensuring full resource
+utilisation.
+The generalisation of the random subset problem is
+the consensus assignment problem (Sec. IV), enabling the
+simultaneous allocation of network nodes to consensus
+sets.
+N C XN
+Distributed consensus networks
+Distributed consensus networks (DCNs) combine the
+consensus assignment problem with an economic model
+that self-incentivises the honest participation of nodes
+(Sec. V). The product of DCNs is proofs-of-consensus
+(PoC) — timestamped, cryptographic proofs that a sets
+of nodes form secure random subsets of a network established
+via distributed execution of the consensus assignment
+problem (Sec. V.C).
+DCNs treat consensus as an abstract market commodity,
+an enabler of generic digital trade. The internal operation
+of DCNs is inherently non-monetary, a barter economy
+in which nodes contribute to consensus load in equal
+exchange for the consensus load they request. Nodes act
+as gateways to the DCNs to which they belong, and may
+independently utilise and monetise consensus load, collectively
+facilitating an externally-facing competitive bidding
+market for consensus (Sec. VII).
+XN
+Xi∈N
+Synchronisation
+Synchronicity in the DCN protocol is enforced using
+compliance voting.
+4
+Proof-of-consensus
+Quantum consensus networks
+Quantum consensus networks (QCNs) (Sec. VI) have
+quantum-enabled nodes, possessing quantum computational
+or communications resources, acting as secure, certifiable
+quantum random number generators (QRNGs)
+upon forming consensus, a commodity with market value.
+Other (classical) DCNs may observe QCNs as oracles,
+utilising their random bitstreams to add entropy
+(Sec. VI.A.2) to their own global keys, enabling quantumrandom
+consensus assignment.
+XO
+XN XN ⊕ XO
+Economics
+Existing blockchain design philosophy couples cryptocurrencies
+with the technological implementation
+of their mechanism for exchange, a vertically integrated
+paradigm which frustrates inter-ledger operations
+(Sec. X). The hard-wiring of currencies with specific consensus
+algorithms couples their cost of execution with
+monetary dynamics. The abstract separation between
+currencies and their mechanism for trade enables horizontal
+competition between currencies, likewise between
+competitors offering consensus as a commodity.
+N
+M
+Blockchains
+...
+Strategic trust dynamics
+N
+NH
+ND
+II. CONSENSUS
+The purpose of consensus is to provide a decentralised
+mechanism for sets of parties to collectively act as an
+independent arbiter in judging and signing off on the validity
+of statements. In the context of blockchains, this is
+employed to determine whether a newly submitted transaction
+block is legitimate and should be added to the
+blockchain.
+In an environment where a minority subset of parties
+are dishonest and conspiring to form false consensus, the
+purpose of consensus protocols is to uphold the will of
+the majority, independent of the behaviour of collusive,
+dishonest parties. As dishonest parties are assumed to be
+in the minority, this can always be achieved by ensuring
+that all parties are involved in consensus. However, this
+is highly resource-intensive and consensus needn’t involve
+all parties. A subset of parties suffices to form consensus
+5
+if their decision reflects the will of the majority, enabling
+them to act as delegates.
+Choosing a subset of parties to form consensus there
+is some probability of dishonest parties forming a false
+majority by chance. Consensus sets should therefore be
+chosen to upper-bound this probability, independent of
+the strategy employed by dishonest parties.
+Consensus is formed by majority vote on the validity
+of some statement (id) by members of a consensus set
+(C) chosen from a set of network nodes (N),
+C ⊆ N. (2.1)
+The majority vote of the entire network is a deterministic
+decision function defining the source of truth,
+MajorityVote(N, id) → {0, 1}, (2.2)
+which consensus sets must uphold. Based on their statistical
+composition, the majority votes of consensus sets
+are in general probabilistic,
+MajorityVote(C, id) =
+(
+P(1 − Pc), MajorityVote(N, id)
+P(Pc), ¬MajorityVote(N, id)
+,
+where Pc is the probability of compromise, whereby C
+comprises a majority of dishonest parties attempting to
+subvert honest outcomes.
+For Pc = 0 where an honest majority is guaranteed,
+this reduces to the deterministic case as per Eq. (2.2).
+The purpose of distributed consensus algorithms is to
+choose consensus sets C operating in this regime to a
+close approximation.
+A. Compliance
+* Byzantine Generals Problem (Lamport et al., 1982)
+III. RANDOM SUBSET PROBLEM
+The random subset problem is to choose a random subset
+A uniformly from B, where A ⊆ B, of which there
+are
+􀀀|B|
+|A|
+
+combinations. If the proportion of parties acting
+dishonestly and collusively is r, the probability a random
+subset of size N contains at least k dishonest parties is,
+P(N, k, r) =
+XN
+n=k
+
+N
+n
+
+rn(1 − r)N−n
+= Ir(k,N − k + 1), (3.1)
+where Ix(a, b) is the regularised incomplete beta function.
+Compromising vote integrity via false-majority requires,
+kmaj = ⌊N/2⌋ + 1. (3.2)
+Hence, the likelihood of compromise is,
+PC(N, r) = Ir(⌊N/2⌋ + 1,N − ⌊N/2⌋). (3.3)
+i j
+vi,j = {0, 1, ⊥}
+Compliant Non-compliant Ambiguous
+Figure 1: Compliance voting. Nodes vote on the protocol
+compliance of all other network nodes, yielding a compliance
+graph, Gc, whose directed edges are labelled by the set of
+O(n2) votes, vi,j = {0, 1, ⊥}. The compliance of nodes is given
+by the majority of their incoming edge labels, or is ambiguous
+if no majority exists.
+While in principle all parties are associated with independent
+likelihood of compromise, ri, choosing subsets
+uniformly at random ensures the probabilities of set
+members being dishonest are independently and identically
+sampled with the average-case probability r,
+r =
+1
+N
+XN
+i=1
+ri. (3.4)
+Hence, Pc is independent of how dishonest nodes are dis6
+Figure 2: Random subsets. Vertices represent network
+nodes coloured by the consensus sets to which they are assigned.
+Each subfigure illustrates a distinct random assignment
+of 36 nodes to 6 consensus sets comprising 6 nodes.
+tributed and what strategies they might employ (Fig. 3).
+Figure 3: Random sampling as a defence against
+strategic alignment. (left) A minority of strategically
+aligned nodes may form false-majority if their alignment overlaps
+with a known allocation for consensus sets. (right) Random
+sampling erases strategic alignment and ensures node
+honesty is sampled with average-case r.
+To uphold the integrity of majority votes, we require
+the likelihood of a minority gaining false-majority by
+chance to be upper-bounded by an exponentially small
+threshold ε = 2−λ,
+PC(N, r) ≤ ε, (3.5)
+for statistical security parameter λ > 1, a subjective parameter
+which may be application- or user-dependent.
+We define the required consensus set size, NC, as the
+smallest set size satisfying this inequality,
+NC(r, ε) = arg min
+N∈Z+
+(PC(N, r) ≤ ε). (3.6)
+For consensus to maintain ε-security, consensus sets
+should never be smaller than NC. Simultaneously, choosing
+consensus sets larger than NC is unnecessary and
+wasteful. Tradeoff curves for NC(r, ε) are shown in Fig. 4.
+This relationship can be conceptualised in terms of
+the mean and variance of r. The population (i.e wholenetwork)
+mean of r is given by,
+μpop(r) =
+ND
+N
+, (3.7)
+where there are ND dishonest nodes within a network
+of N nodes. While ND < N/2 guarantees μpop(r) < 1/2,
+thereby upholding majority rule on average, the sample
+variance, σ2
+samp(r), characterises deviation from the
+mean, affording the statistical opportunity for falseconsensus,
+σ2
+samp(r) =
+σ2p
+op
+NC
+, (3.8)
+where σ2p
+op(r) is the population variance and NC is consensus
+set size, equivalently the number of random samples.
+Since σ2
+samp(r) = O(1/NC) scales inversely with consensus
+set size, larger consensus sets increase statistical
+confidence that the sample mean is close to the population
+mean, μsamp(r) ≈ μpop(r).
+Specifically, the probability that the sample mean positively
+deviates from the population mean by at least d
+is,
+P(μsamp(r) − μpop(r) ≥ d) = Φ
+
+−
+d
+√
+NC
+σpop
+
+, (3.9)
+where Φ(z) is the cumulative distribution function of the
+standard normal distribution,
+Φ(z) =
+1
+√
+2π
+Z z
+−∞
+e−t2/2 dt
+=
+1
+2
++
+1
+2
+erf
+
+z
+√
+2
+
+. (3.10)
+False-consensus requires μsamp(r) > 1/2, equivalently
+d = 1/2 − μpop(r). Hence,
+P(μsamp(r) ≥ 1/2) = Φ
+ 􀀀
+μpop(r) − 1
+2
+√
+NC
+σpop
+!
+. (3.11)
+For whole-network consensus where NC = N the sample
+and population means converge, μsamp(r) = μpop(r).
+* Discussion on network diversity. Unenforceable in
+open, anonymous networks. μ(r) is not inherently a function
+of the number of nodes, but their diversity of control.
+In the Bitcoin network the injection of new nodes in the
+form of large mining pools can be antithetical to this.
+Common ownership implies correlated ri in an adversarial
+model.
+7
+Figure 4: Security tradeoffs with consensus set size.
+PC(N, r) ≤ ε is the probability that dishonest nodes within a
+random subset of size N form a false-majority when the proportion
+of dishonest nodes is r, where ε = 2−λ is the statistical
+security parameter. The oscillatory artefacts are associated
+with the non-linearity of ⌊N/2⌋ for even- and odd-valued N.
+A. Centralised algorithm
+The random subset problem has a trivial centralised
+solution (Alg. 1). We assign unique random bit-strings
+to each node, order them by their random number, and
+partition the ordered list piecewise into units of length
+NC. These partitions form non-intersecting random subsets,
+each defining an independent consensus set.
+Algorithm 1: Centralised algorithm for the random subset
+problem, assigning a set of nodes S to a set of independent
+random subsets {C} of given sizes {|C|}.
+function RandomSubsets(S, {|C|}) → {C}
+▷ Assign a random number to each node ◁
+for i ∈ S do
+randomi ← Random({0, 1}n)
+▷ Sort nodes by their random number ◁
+ordered = Sort(S, random)
+▷ Partition the list into consensus sets ◁
+{C} = Partition(ordered, {|C|})
+return {C}
+The challenge is to securely implement this algorithm
+in a decentralised environment, such that nodes are unable
+to compromise the randomness of the assignments
+of consensus sets.
+B. Proof-of-work
+* Hashcash: (Back, 2002; Dwork and Naor, 1993)
+Proof-of-work has been widely employed in blockchains
+such as Bitcoin (Nakamoto, 2008) as a distributed protocol
+for choosing random subsets of nodes. Here, nodes
+compete to find satisfying inputs to hash functions whose
+outputs satisfy a constraint dictating the likelihood of
+success. This distributed algorithm effectively asks nodes
+to find solutions to randomised problems with very low
+probability of success, pmine ≪ 1, such that winners are
+randomly allocated across nodes in the network.
+Since hash functions are pseudo-random and exhibit
+pre-image resistance4, the only viable approach to finding
+such solutions is via brute-force, repeatedly hashing
+random bit-strings until a satisfying input is found. Winning
+nodes are hence allocated at random and cannot
+be spoofed under a computational hardness assumption.
+The distributed algorithm for proof-of-work is shown in
+Alg. 2.
+Algorithm 2: Random subsets via proof-of-work. Nodes S
+hash random bit-strings, salted by a problem instance specified
+by the previous block id, where the per-hash success rate
+is pmine.
+function ProofOfWork(S, id, size) → C
+C = {} ▷ Consensus set
+while |C| < size do
+for i ∈ N do ▷ In parallel
+randomi = Random({0, 1}n)
+outputi = Hash(id || randomi)
+if Valid(outputi) then
+C ← C ∪ Si
+return C
+function Valid(x ∈ {0, 1}n) → {0, 1}
+if x/2n ≤ pmine then
+return true
+else
+return false
+Proof-of-work has no requirement that nodes be known
+or trusted, providing a very general protocol suited to
+open networks in which anyone can participate. However,
+while affording a distributed solution to the random subset
+problem, this approach is inherently wasteful. The
+expected mining rate is,
+Rmine = pmine · Rhash, (3.12)
+4 For Hash(x) → y it is computationally hard to find a satisfying
+input x ∈ {0, 1}∗ for given output y ∈ {0, 1}n.
+8
+where Rhash is the network’s net hash-rate5. To inhibit
+the formation of multiple, simultaneous consensus sets
+(double-mining), potentially manifesting itself as forks
+in the blockchain, proof-of-work systems may introduce
+friction by algorithmically adjusting the difficulty parameter
+to ensure consistent mining times. To achieve constant
+mining time, difficulty must scale with cumulative
+network hash-rate, making the distributed algorithm less
+efficient as network size grows. For example, maintaining
+constant mining rate implies efficiency scales inversely
+with network size,
+pwaste = 1 − O
+
+1
+n
+
+, (3.13)
+asymptotically perfectly inefficient.
+C. Secure shared randomness
+An environment comprising a network of known nodes
+affords a more efficient solution to the random subset
+problem. The key observation is to utilise secure shared
+randomness to randomly permute and partition sets of
+nodes as per Alg. 1. The source of shared randomness
+should be secure, in the sense that its randomness be
+robust against manipulation by dishonest nodes.
+Secure shared randomness can be achieved by first requiring
+network nodes (N) to present transaction ids
+whose hashes act as unique random numbers,
+Xi = Hash(idi). (3.14)
+A global key is then defined relative to the set N as,
+XN = Hash
+"
+
+
+i∈N
+X↓
+i
+#
+, (3.15)
+our shared random source, where ||i denotes concatenation
+over elements i, and χ↓ = Sort(χ) denotes the
+sorted set.
+FIX ??? Under the rules of entropy addition
+(Sec. VI.A.2), the randomness of the global key, XN, cannot
+be compromised unless all Xi are compromised.
+D. Secure random subsets
+* Change ’global key’ to ’secure shared random source’.
+From a secure global key, XN, as per Eq. (3.15) the
+random subset problem affords a simple solution. Individual
+keys are assigned to each node,
+Ki = Hash(XN||Xi). (3.16)
+5 Bitcoin’s cumulative network hash-rate was ∼500EH/s
+(500 × 1018H/s) as of January, 2024 (YCharts, 2024).
+Ordering and partitioning nodes by their associated {Ki}
+assigns them to consensus sets as per Alg. 1.
+Multiple random subset allocations may be derived
+from a single global key by rehashing individual keys,
+K(n)
+i = Hashn(XN||Xi), (3.17)
+where K(n)
+i denote keys for the nth round.
+While nodes may choose their contributed ids, thereby
+influencing the established random source, XN, this does
+not provide an avenue for compromising the integrity of
+random subset assignment. Adversarial nodes attempting
+to compromise ε-security by manipulating XN must find
+the necessary satisfying pre-images idi. Searching over
+poly(λ) pre-images, each associated with unique, independently
+random instances of XN, preserves the exponentially
+decreasing likelihood of compromise,
+ε′ ≤
+poly(λ)
+2λ . (3.18)
+This approach to random subset assignment necessarily
+assumes a collectively agreed upon known set of nodes,
+as the global key XN cannot be established from an undefined
+set, nor can an undefined set be ordered.
+IV. CONSENSUS ASSIGNMENT PROBLEM
+The random subset problem randomly partitions network
+space into consensus sets, imposing a subset-sum
+constraint on consensus set sizes. In the context of symmetric
+load where all nodes request |C| consensus load
+the net consensus load is,
+L = |C| · |N |. (4.1)
+This requires performing |C| independent re-partitionings
+within each of which every node will be assigned exactly
+once. Under this allocation every node both contributes
+and requests |C| units of work.
+The consensus assignment problem generalises the random
+subset problem to accommodate arbitrary consensus
+set sizes and asymmetric load, allowing nodes to contribute
+and request arbitrary consensus workload, a prerequisite
+for enabling a free consensus market.
+Representing consensus assignment via consensus assignment
+graphs (Sec. IV.A) reflecting the contributed
+and requested load by nodes and consensus sets, the algorithm
+uniformly samples from the space of satisfying
+assignments (Sec. IV.B), achieved by defining consensus
+assignment via its algebraic group structure (Sec. XI.A)
+and uniformly sampling the group action acting on an initial
+graph assignment (Sec. IV.A.1), where the pseudorandom
+algorithm is seeded (Sec. IV.B.3) by a secure
+random variable established by the network (Sec. III.C)
+to ensure consistent evaluation in a distributed context.
+9
+The distributed algorithm for the consensus assignment
+problem is shown in Alg. 3.
+Algorithm 3: Distributed algorithm for the consensus
+assignment problem. A secure shared random variable
+(Sec. III.C), XN, collectively established by the network, N,
+seeds pseudo-random sampling (Sec. IV.B) over consensus assignments,
+E, satisfying the consensus assignment graph constraints,
+(U, V, d) (Sec. IV.A).
+function DistConsensusSampling(N, U, V , d) → E
+XN ← SecureSharedRandomness(N)
+E ← CanonicalGraph(U, V, d)
+E ← ConsensusShuffle(XN,E)
+return E
+A. Consensus assignment graphs
+U E V
+ui
+...
+vj
+...
+e = (ui, vj)
+Figure 5: Generalised consensus assignment problem.
+Consensus assignment may be represented as a directed bipartite
+graph, G = (U, V,E), from a space of network nodes,
+U ≡ N, to consensus sets, V ≡ {C}, where vertex degree represents
+contributed/consumed consensus load. The set of all
+satisfying edge-sets {E} represents the space of valid assignments.
+Under sampling, pi,j is the probability of the existence
+of edge e = (ui, vj ), which assigns node ui to consensus set vj .
+Figure 6: Satisfying solutions for the consensus assignment
+problem. The space of satisfying graphs assignments,
+{G} = Cd × Gn,d, for n = 3 nodes of degree d = 2.
+Consider a directed bipartite graph (Fig. 5),
+G = (U, V,E), (4.2)
+where vertices u ∈ U and v ∈ V represent network nodes
+(U = N) and consensus sets (V = {C}) respectively, and
+the directed edge set E defines the assignment of nodes
+to consensus sets where each edge is associated with a
+unit of consensus work. The constraint that nodes may
+be assigned at most once to a given consensus set imposes
+that G is a simple graph.
+Consensus load may be arbitrarily partitioned and
+nodes may make multiple requests for consensus sets,
+hence in general |S| ̸= |{C}|.
+Vertex degrees represent workload, where deg(u) denotes
+work contributed by node u and deg(v) the load
+requested by consensus set v. The degree sum formula
+for bipartite graphs equates to a conservation of work
+constraint in the system,
+X
+u∈U
+deg(u) =
+X
+v∈V
+deg(v) = |E|, (4.3)
+where |E| represents net consensus work.
+Asymmetric load introduces sampling bias into the
+average-case likelihood of compromise, r, defined in
+Eq. (3.4), which generalises to,
+r =
+1
+|E|
+X|N|
+i=1
+deg(ui) · ri. (4.4)
+The assignment of network nodes to consensus sets is
+equivalent to assigning edge-sets E subject to the constraints
+imposed by the degree sequence,
+d = (deg(u1), . . . , deg(u|U|);
+deg(v1), . . . , deg(v|V |)), (4.5)
+where,
+|d| = |U| + |V | = |N | + |{C}|. (4.6)
+Expressing graphs by their edge-sets, E,
+G = {(ue ∈ U, ve ∈ V )}e∈E, (4.7)
+where edges (ue, ve) denote the assignment of node ue to
+consensus set ve. In columnar representation,
+EU = {ue}e∈E,
+EV = {ve}e∈E, (4.8)
+elements have multiplicity given by their degree.
+1. Initial assignment
+Uniformly sampling consensus allocation requires applying
+sampled consensus group transformations (Alg. 8)
+10
+...
+...
+Gn,d
+d = N(r/p, ε)
+Figure 7: Uniform bidding initial assignment graph.
+Gn,d has n nodes and n consensus sets, all with degree d.
+G6,1 G6,3 G6,6 = K6,6
+Figure 8: Uniform bidding initial assignment graph.
+Gn,d has n nodes and n consensus sets, all with degree d,
+where d ≤ n. For n = d we obtain the complete bipartite
+graph Gn,n = Kn,n.
+to an initial satisfying graph assignment (Fig. 5) — a solution
+to the bipartite realisation problem. Via the Gale-
+Ryser theorem (Gale, 1957; Ryser, 1957), realisable bipartite
+graphs (those with bigraphic degree sequences)
+demands,
+X|U|
+i=1
+deg(ui) =
+X|V |
+j=1
+deg(vj), (4.9)
+Xk
+i=1
+deg(ui) ≤
+X|V |
+j=1
+min(deg(vj), k), ∀ k ∈ {1, . . . , |V |},
+where the second constraint assumes U and V are ordered
+decreasingly by degree. Realisable bipartite graphs may
+be efficiently realised using the Havel-Hakimi algorithm
+(Hakimi, 1962; Havel, 1955), shown in Alg. 10, which we
+employ for initial canonical graph assignment.
+The simplest bidding format for ensuring realisable
+consensus assignment is uniform bidding where all nodes
+request a single consensus set of size |C|, and all vertices
+have constant degree,
+deg(u) = deg(v) = |C|, ∀ u ∈ U, v ∈ V, (4.10)
+which is realisable as per Eq. (4.9) if and only if,
+|C| ≤ |N ′|, (4.11)
+where,
+|U| = |V | = |N ′| = |C|, (4.12)
+is the number of participating network nodes, equivalently
+the number of consensus sets. The same condition
+holds if all nodes request a constant number of consensus
+sets of uniform size.
+B. Uniform consensus sampling
+Secure consensus assignment requires assigning edgesets
+uniformly at random over the space of all satisfying
+edge-sets. Uniformity implies maximisation of entropy,
+given by,
+H(C(d)) = log2(|C(d)|), (4.13)
+where |C(d)| is the order of the respective consensus
+group. Degeneracies in permutations result in sampling
+bias thereby reducing entropy, requiring that algorithmic
+implementation does not double-count degenerate permutations
+from the symmetric group.
+1. Fisher-Yates shuffle
+The Fisher-Yates shuffle (Fisher and Yates, 1953) is
+an efficient algorithm for applying in-place permutations
+π ∈ Sn to an array of n elements uniformly at random
+(Alg. 4).
+The algorithm iteratively allows every array index to
+randomly exchange itself with any element not already
+assigned. Assuming O(1) random number generation the
+Fisher-Yates shuffle exhibits O(n) time-complexity. As
+the operational primitive is the exchange operation the
+algorithm permutes arrays in-place.
+The sequence of O(n) random numbers chosen during
+execution defines a decision tree whose ith level assigns
+the ith array index. Individual execution paths correspond
+to individual permutations with a one-to-one correspondence.
+Hence, the algorithm’s execution space Ln
+is isomorphic to the symmetric group,
+Ln
+∼=
+Sn, (4.14)
+11
+under mapping between execution paths l ∈ Ln and permutations
+π ∈ Sn. As all execution paths occur with uniform
+probability 1/n! the algorithm uniformly samples
+from the symmetric group.
+Algorithm 4: (Fisher and Yates, 1953) The Fisher-Yates
+shuffle algorithm for applying a random permutation π ∈ S|⃗v|
+to the elements a vector ⃗v. The algorithm permutes vectors inplace
+with O(n) runtime assuming an O(1) Random(·) function.
+function FisherYatesShuffle(⃗v) →⃗v ▷ O(n)
+for i ← |⃗v| − 1 to 1 do ▷ O(n)
+j ← Random({0, . . . , i}) ▷ O(1)
+vi ↔ vj ▷ Exchange
+return ⃗v
+The uniqueness of execution paths may be seen by noting
+that an element at index j ≤ i has exactly one path to
+be reassigned to index i, via the direct exchange vi ↔ vj
+when the loop reaches index i.
+The execution path l ∈ Ln of the algorithm directly
+relates to the cycle decomposition of the respective group
+element. As the algorithm iterates through i the series
+of exchange operations defines a path. When a trivial
+vi ↔ vi exchange occurs it terminates that path, closing
+it as a cycle, after which the next i opens a new one.
+Closely related to the Fisher-Yates shuffle is Sattolo’s
+algorithm (Sattolo, 1986) for uniformly sampling the
+cyclic group (Cn) differing only from the Fisher-Yates
+shuffle in the set of allowed exchanges,
+Fisher-Yates (Sn) : 0 ≤ j ≤ i,
+Sattolo (Cn) : 0 ≤ j < i. (4.15)
+Note that this distinction serves to prohibit trivial exchanges
+(vi ↔ vi) thereby forcing all execution paths to
+define single cycles.
+2. Graph randomisation
+* Graph is NC-regular.
+* Probability of node u ∈ U being assigned to consensus
+set v ∈ V is,
+pu,v =
+NC
+N
+, ∀ u, v, (4.16)
+which is node and consensus set independent.
+* Randomisation over U ensures uniform distribution
+in the grouping of nodes into consensus sets.
+* Randomisation over V ensures iid in their assignment
+to consensus sets.
+* Generalises to (dU, dV )-biregular graphs when,
+dV · |V | = dU · |U|. (4.17)
+Same equation for pu,v.
+* Not equivalent to uniformly sampling over space of
+satisfying graph realisations.
+* Different cycle structures.
+3. Sampling via random bitstreams
+As nodes must be in agreement on consensus assignment
+the Random functions relied upon during execution
+of Alg. 8 must evaluate consistently across network
+nodes, for which the established secure random bitstream
+XN (Sec. III.C) is employed as per Alg. 5.
+Algorithm 5: Deterministically choose an element x from n
+choices where X is a secure shared random bitstream. At most
+|X | ≤ ⌈log2(n)⌉ · log2(1/δ) bits are required to ensure success
+with probability p ≥ 1 − δ.
+function Random(X, n) → x
+repeat
+b ← ⌈log2(n)⌉ ▷ Minimum required number of bits
+x ← X.pop(b) ▷ Pop bits from bitstream
+until x < n ▷ Until x is within bounds
+return x
+While this function is deterministic it is not guaranteed
+to halt if n ̸= 2b where b ∈ Z+. The success probability
+for a single iteration of the repeat block in Alg. 5 is,
+p1(n) =
+n
+2⌈log2(n)⌉
+≥
+1
+2
+, (4.18)
+where the worst-case lower-bound of p = 1/2 arises when
+n = 2b + 1 for b ≫ 1,
+p1(2b + 1) =
+1
+2
++
+1
+2b+1 ,
+lim
+b→∞
+p1(2b + 1) =
+1
+2
+. (4.19)
+With m rounds the success probability is,
+pm(n) = 1 − (1 − p1)m > 1 −
+1
+2m. (4.20)
+Limiting the probability of failure to δ = 1/2m requires
+at most,
+m ≥ log2(1/δ), (4.21)
+rounds. Hence, the worst-case consumption of random
+bits is,
+|X (n)| ≤ ⌈log2(n)⌉ · log2(1/δ). (4.22)
+The respective number of bits required to address all elements
+of the symmetric group, Sn, with δ-likelihood of
+failure for all calls to Random(X, ·) is,
+|X |(Sn) =
+Xn
+i=1
+|X (i)|
+= log2(1/δ) ·
+Xn
+i=1
+⌈log2(i)⌉
+≈ log2(1/δ) · log2(n!), (4.23)
+an effective log2(1/δ) multiplicative overhead on the scaling
+relationship shown in Fig. 9.
+12
+Figure 9: Number of bits (n) required to encode an arbitrary
+permutation (SN) over N elements. This upperbounds
+the required number of bits to uniquely address elements
+of the consensus group, C(d).
+V. DISTRIBUTED CONSENSUS NETWORKS
+A. Model
+We consider a network of known nodes (N) with access
+to a shared, public broadcast channel (B), which nodes
+may broadcast() into and listen() to. The communications
+primitives our model relies upon are shown in
+Alg. 6.
+Network nodes Bid to participate in consensus by announcing
+transaction ids with their required consensus
+set size. The network forms consensus on the set of nodes
+and bids to accept, thereby establishing the global key
+XN which defines the assignment of consensus sets via
+distributed implementation of the random subset problem.
+Algorithm 6: Communications primitives, where B denotes
+the shared broadcast channel and numbers denote distinct
+synchronous steps.
+function Announce(node, statement)
+message = Sign(node, statement)
+B ← B ∪ message ▷ Broadcast
+function CommitReveal(node, statement)
+salt = Random({0, 1}n)
+▷ 1. Commit hash ◁
+Announce(node, Hash(statement|salt))
+▷ 2. Reveal pre-image ◁
+Announce(node, message|salt)
+B. Protocol
+The DCN protocol is synchronous with the following
+steps for each network node i ∈ N:
+Market DCN
+Consumer Node Broadcast
+bid
+bid
+listen
+accept
+listen
+vote
+listen
+compliance
+listen
+proof
+Figure 10: DCN protocol sequence diagram. (blue)
+DCN internal network. (red) External consensus market.
+1. Bid: Nodes (i) bid to participate by presenting a
+set of requests (j) for consensus sets of given sizes
+(|Ci,j |),
+Ri,j = (idi,j , |Ci,j |),
+Ri =
+[
+j
+Ri,j , (5.1)
+and stating recognised network nodes via the set of
+their public keys (PubKeyj ),
+N(i) = {PubKeyj}. (5.2)
+All nodes broadcast (commit-reveal):
+B ← (Ri,N(i)). (5.3)
+2. Accept: Observing the broadcast channel B, all
+nodes infer the accepted network state, bids and
+participating nodes (N′),
+B → ( ˜R, ˜N ′, ˜N ),
+˜N
+= MajorityVote({N(j)}),
+( ˜R, ˜N ′) = Accept({Rj}), (5.4)
+where Accept(·) is a network-agreed deterministic
+function, and ∼ denotes values inferred from the
+broadcast channel.
+13
+In this step consensus is performed at the network
+level where all network nodes form a single consensus
+set, requiring that participants form a network
+majority,
+|N ′| >
+|N |
+2
+. (5.5)
+All other votes in the protocol are conducted at the
+level of assigned consensus sets.
+3. Consensus: The global key XN is implied by the
+accepted parameters (Sec. III.C) as is the network’s
+allocation to consensus sets via the random subset
+algorithm (Sec. 1).
+B → XN → {C}. (5.6)
+Participating nodes vote (commit-reveal) on their
+assigned consensus requests,
+B ← Votei( ˜R). (5.7)
+4. Compliance: Nodes vote (announce) on the compliance
+of participating nodes and reveal the timeof-
+receipt of all broadcast messages associated with
+the respective consensus’. Compliant nodes follow
+all required protocol steps, are in agreement with
+the majority on all votes, where timestamps (timeof-
+receipt) of all announcements are within the network’s
+δ threshold.
+B ← CompliantSeti(N). (5.8)
+1. Voting
+* Assume the network composition is,
+N = NH + ND, (5.9)
+where NH > ND.
+* A network majority requires,
+Nmaj = ⌊N/2⌋ + 1, (5.10)
+votes.
+* Requiring at least,
+NV = Nmaj + ND, (5.11)
+votes guarantees the inclusion of Nmaj honest votes,
+thereby upholding network integrity (correctness?).
+* Requiring at least,
+NP = NV + ND
+= Nmaj + 2ND, (5.12)
+participants (i.e bidders) guarantees at least NV honest
+voters amongst them, ranging between NV (all of whom
+are honest) to NP (NV honest + ND dishonest).
+* Since there are at least NV honest participants,
+reaching quorum does not rely on dishonest parties who
+therefore do not have the ability inhibit quorum.
+* Treating all dishonest votes as ambiguous (ND =
+N⊥) and honest votes as unambiguous with NH = N+ +
+N− votes for (+) and against (−) Accept.
+* Here 0 ≤ N+ ≤ ND is a subjective value.
+* A simple majority vote becomes ambiguous when
+ambiguous votes can swing the outcome. An unambiguous
+vote outcome is inhibited when,
+N+ < Nmaj,
+N− < Nmaj, (5.13)
+both hold.
+Nmaj − N⊥ < N+ < Nmaj (5.14)
+Within this window dishonest voters may swing the
+simple-majority outcome in either direction. If dishonest
+votes are in favour we have,
+N+ + ND ≥ Nmaj, (5.15)
+and the outcome is unambiguous Accept. If dishonest
+votes go against we have,
+N+ < Nmaj, (5.16)
+and the outcome is unambiguous Reject.
+* When,
+N+ + ND < Nmaj, (5.17)
+it is not possible for withheld dishonest votes to swing
+the outcome to Accept and the result is unambiguous
+Reject.
+* Using three-valued logic the subjective simple majority
+vote outcome is,
+14
+MajorityVote(i)(·) =
+
+
+0, N(i)
++ < Nmaj − ND
+1, N(i)
++ ≥ Nmaj + ND
+⊥, Nmaj − ND < N(i)
++ < Nmaj + ND
+,
+where the subjective outcome is relative to a party’s understanding
+of N(i)
++ .
+* As different nodes may have different subjective interpretations
+of N+, when the majority vote is ambiguous
+for some it may be unambiguous for others. As honest
+nodes are compliant all parties have the same subjective
+understanding of honest vote outcomes. Dishonest nodes
+may be non-compliant, resulting in fragmentation from
+inconsistent subjective understanding of their outcomes.
+* If a node subjectively believes there are N+ ≥ Nmaj
+votes to Accept, hence an Accept majority vote outcome,
+other nodes may subjectively believe there are a
+minimum of N+ − ND votes to Accept. Hence, a voter
+(A) who subjectively observes N(A)
++ ≥ Nmaj can only
+be certain other nodes share that understanding when
+N(A)
++ − ND ≥ Nmaj.
+* Subsequent to a simple majority vote, let us hold a
+supermajority vote requiring NV votes to pass. As there
+are at least NV honest voters amongst the NP participants
+quorum exists.
+* If the simple majority vote is unambiguous the supermajority
+vote is required to reflect that outcome (confirmation).
+If the simple majority vote is ambiguous this
+implies Nmaj − ND < N+ < Nmaj. A supermajority of
+NV requires N+ + N′+
+≥ NV , where N′+
+≤ ND are any
+unknown dishonest votes that may yet additionally contribute.
+In the ambiguous regime, a supermajority of NV requires,
+N+ + N′+
+≥ NV ,
+N+ + N′+
+≥ Nmaj + ND,
+N+ + N′+
+− ND ≥ Nmaj, (5.18)
+Since N+ < Nmaj + ND
+See Fig. 11
+* Since NP = Nmaj + 2ND comprises (at most) ND
+dishonest parties,
+r˙ =
+ND
+NP
+=
+ND
+p · N
+=
+r
+p
+(5.19)
+With NV received votes, it is guaranteed a network
+majority of Nmaj have cast honest votes.
+2. Network acceptance
+??? TO DO
+Decomposing a network into honest and dishonest
+nodes,
+N = NH ∪ ND,
+N = NH + ND, (5.20)
+the ratios of malicious (r) and participating (p) nodes in
+the network are,
+r =
+ND
+N
+, p =
+NP
+N
+, (5.21)
+where N′ are the participating nodes,
+In a worst-case adversarial model we assume all dishonest
+nodes are present in any participating set. The
+ratio of malicious nodes in the participating set is,
+r′ =
+ND
+p · N
+=
+r
+p
+, (5.22)
+modulating the effective ratio of dishonest nodes by the
+ratio of participating nodes, where p > 1/2 and r < 1/2.
+Maintaining r′ < 1/2 to ensure an honest majority imposes
+a lower bound on the participation ratio,
+pmin > max(2r, 1/2). (5.23)
+As the effective proportion of dishonest nodes,
+r′ = r/p, is a function of the variable network participation
+rate, p, the required consensus set size to maintain
+ε-security may be algorithmically specified upon acceptance.
+Now the dynamic minimum consensus set size
+scales as,
+Nmin(r/p, ε), (5.24)
+shown in Fig. 12.
+C. Proof-of-consensus
+The sequence of signed, broadcast announcements
+made by compliant network nodes (i) is:
+• Ri: Request for consensus sets.
+• N(i): Public keys of all network nodes.
+• Votei( ˜Rj ): Votes on assigned consensus’.
+• Timestampi(B): Time-of-receipt of broadcast messages
+from other nodes in the consensus set.
+15
+Honest
+NV = Nmaj + ND
+Dishonest
+ND
+Majority
+Nmaj
+Voters
+Reject
+0
+Unknown
+⊥
+Accept
+1
+Ambiguous vote
+Figure 11: ???
+• CompliantSeti(C): Recognised compliant nodes
+in the consensus set.
+We denote a complete set of such announcements from a
+given node (i ∈ N) participating in consensus set C as,
+Pi(C). (5.25)
+A proof-of-consensus for consensus set C comprises any
+self-consistent majority set of partial proofs,
+P(C) =
+[
+i∈Majority(C)
+Pi(C). (5.26)
+Note that while the proofs for a given consensus are not
+unique they are equivalent proofs of the same statement.
+A proof-of-consensus in a self-contained proof system,
+comprising all necessary information to verify its validity.
+* Variation in consensus time preserves compliance
+outcomes.
+D. Network policy
+Let the network maintain its own ledger for tallying
+the contributed consensus workload of all network nodes,
+comprising an array of zero-initialised integer registers,
+one for each node,
+tally ∈ Z|N|. (5.27)
+When node i faithfully participates in consensus its tally
+register is incremented. Conversely, when requesting consensus
+load its tally must have sufficient balance to make
+the request. Under steady-state operation where nodes
+request what they contribute registers do not change.
+When the network accepts new nodes they are unable
+to immediately make consensus requests and instead
+make null-bids, offering to contribute load without
+return. This increases their tally, enabling them to
+make subsequent requests for consensus load. This effectively
+forces new nodes to buy into the network by
+pre-contributing load they will subsequently request.
+During the Accept stage of the protocol, the network
+must also agree on the network’s updated tally state.
+* Policy: propose update.
+* Accept current constitution.
+E. Resource consumption
+* Latency limits speed.
+* Multiplier via independent parallel sub nets or more
+virtual nodes.
+* Inter subnet balancing of load into single.
+* Digital signature consumption.
+* Distributed consensus networks are highly resourceefficient,
+as all nodes participate in consensus, and the
+allocation of consensus sets is.
+* Consider both signature creation and verification.
+Size of PoC.
+VI. QUANTUM CONSENSUS NETWORKS
+Quantum consensus networks (QCNs) have quantumenabled
+nodes, whose goal it is to form consensus on the
+generation of certifiable quantum randomness, an important
+resource in cryptography and numerous other applications.
+As quantum hardware is costly compared to classical
+hardware it is expected that few networks will be
+quantum-enabled. However, they may exploit the quantum
+randomness provided by dedicated QCNs acting
+as quantum random oracles (Sec. VI.B) to inject entropy
+into their own global keys using entropy addition
+(Sec. VI.A.2), effectively enabling classical DCNs to
+achieve quantum random consensus assignment.
+16
+Figure 12: Security tradeoffs with consensus set size
+and variable network participation. Pc(N, r/p) ≤ ε is the
+probability that dishonest nodes within a random subset of
+size N form a false-majority when the proportion of dishonest
+nodes is r′ = r/p, with network participation p. Shown for
+constant ε = 2−30, where the p = 1 curve corresponds to the
+respective curve in Fig. 4.
+We consider two approaches for quantum random number
+generation (QRNG):
+• Quantum key distribution (QKD): requires quantum
+communication but no quantum computation
+(Sec. VI.C).
+• Interactive proofs of quantumness: require quantum
+computation but no quantum communication
+(Sec. VI.D).
+As these are two-party protocols, every instance may
+be associated with a graph edge between the respective
+nodes. Random numbers associated with edges may be
+spoofed if both nodes collude, bypassing the need for expensive
+quantum resources. However, so long as at least
+one contributing QRN is genuine, combining them under
+bit-wise XOR yields a collective QRN source.
+Independent of the underlying two-party QRNG protocol,
+QCNs operate as follows:
+Figure 13: Proof-of-consensus.
+1. All nodes execute two-party QRNG with all other
+nodes, a total of n(n − 1) QRNG rounds.
+2. All n nodes commit their versions of their QRNG
+outcomes with all other n − 1 nodes.
+3. A corresponding compliance graph is implied by the
+committed data. This may be realised by any entity
+observing the published data.
+4. A graph reduction algorithm eliminates graph
+edges associated with inconsistent QRNG outcomes,
+followed by eliminating nodes not connected
+by a majority of edges.
+5. The resultant graph is a unique fully-connected
+subgraph representing the unanimous-majority
+outcome (Sec. VI.C.1).
+* The QKD implementation is likely to always make
+most economic sense where quantum communication
+is available however this requires quantum communications
+infrastructure. Classical communication is far
+more versatile and quantum communication and quantum
+communication is not possible without classical sidecommunication.
+* Explain relative pros and cons of QKD and IPQ variance
+A. Entropy
+Randomness may be quantified in terms of Shannon
+entropy (Shannon, 1948), an information-theoretic measure
+expressed in units of bits of information.
+17
+The Shannon entropy for a discrete random variable
+X following probability distribution pi is given by,
+H(X) = −
+X
+i
+pi log2 pi, (6.1)
+where i sums over the range of X.
+An important special case is the binary entropy
+(Fig. 14), defined for binary random variables,
+X → {0, 1},
+H2(X) = −p log2 p − (1 − p) log2(1 − p), (6.2)
+in terms of a single probability parameter,
+p = P(X = 0) = 1 − P(X = 1). (6.3)
+which is bounded by,
+0 ≤ H2(·) ≤ 1. (6.4)
+Figure 14: Binary Shannon entropy.
+1. Entropy sources: quantum vs. classical
+* Entropy rate
+H(X) = lim
+t→∞
+H(Xt|Xt−1, . . . ,X1), (6.5)
+where H(X|Y ) is the conditional entropy of X given
+knowledge of Y .
+TO DO:
+* What is quantum random vs classical random.
+* Correlations over repeats?
+For iid (quantum)
+H(X) = H(Xn) (6.6)
+2. Entropy addition
+The XOR operator is strictly non-entropy-decreasing.
+For independent binary random variables,
+Xi,Xj → {0, 1} (6.7)
+the entropy of the XORed random variable Xi ⊕ Xj is
+bounded by,
+H2(Xi ⊕ Xj) ≥ H2(Xi ⊕ Xj|Xj)
+= H2(Xi|Xj)
+= H2(Xi), (6.8)
+following from the properties of the conditional entropy.
+As this applies symmetrically to both Xi and Xj we have,
+H2(Xi ⊕ Xj) ≥ H2(Xi),
+H2(Xi ⊕ Xj) ≥ H2(Xj), (6.9)
+which implies,
+H2(Xi ⊕ Xj) ≥ max({H2(Xi),H2(Xj)}), (6.10)
+and generalises to,
+H2
+ 
+M
+i
+Xi
+!
+≥ max
+i
+({H2(Xi)}). (6.11)
+Therefore, a random source derived from multiple
+sources via entropy addition is at least as random as any
+of them. Consequently, if any single contributing source
+is a genuine QRNG, so too will be their the combined
+source.
+Note that hash functions do not exhibit the entropy addition
+property of the bitwise XOR operation and cannot
+be employed in this context.
+B. Quantum random oracles
+Let O(t) denote a dynamic set of contributing random
+oracles, each provisioning random variable Xi(t) at time
+t. We define a collective oracular bitstream,
+XO(t) =
+M
+i∈O(t)
+Hash[Xi(t)] ⊕ Xi(t), (6.12)
+whose combined entropy is bounded by,
+max
+i∈O
+({H2(Xi)}) ≤ H2(XO) ≤ 1. (6.13)
+Classical DCNs may observe QRNG oracles, adding
+their entropy XO to their own established network random
+variables XN. For this to be secure it is required
+that the DCN’s own global key, XN, be committed prior
+to the availability of the external entropy source,
+X˜N(t + τ ) = XN(t) ⊕ XO(t + τ ), (6.14)
+18
+XO(t)
+XN(t) XN(t) ⊕ XO(t + τ )
+Figure 15: Quantum random oracles. A classical DCN
+establishing hash-based secure random source XN(t), where t
+denotes time, may add entropy from a QCN acting as oracle
+for quantum random source XO(t). To maintain security XN
+must be established in advance of XO, achieved by adding
+entropy from a QRN outcome at pre-agreed future time t+τ ,
+X˜N(t) = XN(t) ⊕ XO(t + τ ).
+where X˜N is the network’s oracle-modulated global key,
+and τ > 0 is a pre-agreed future point in time, subsequent
+to commitment of the networks initially established
+global key, XN.
+While entropy addition itself does not require the
+Hash[Xi(t)] terms in Eq. (6.12), their inclusion inhibits
+compromised oracles from manipulating the combined
+entropy source, X˜N. Unlike hash functions, XOR algebra
+is trivially invertible enabling entropy addition to be
+trivially manipulated if the other contributing sources are
+known. Since XN(t) is established in advance of XO(t+τ ),
+compromised oracles could trivially dictate XN = XC by
+choosing,
+XO(t + τ ) = XN(t) ⊕ XC. (6.15)
+The additional hash-dependence mitigates this vulnerability
+as compromised oracles would instead have to
+choose,
+XO(t + τ ) = Hash[XO(t + τ )] ⊕ XN(t) ⊕ XC, (6.16)
+requiring a hash pre-image attack to compromise the integrity
+of X˜N, eliminating any requirement of trust in
+external random oracles.
+C. Quantum key distribution (QKD)
+Quantum key distribution (QKD) (Bennett and Brassard,
+1984; Ekert, 1991) enables the secure establishment
+of shared randomness between two parties with information
+theoretic security. While ordinarily utilised for secret
+key exchange, here we exploit not the secrecy of shared
+randomness but its inability to be spoofed under honest
+execution of the protocol.
+Assuming the existence of a quantum internet (Rohde,
+2021) capable of arbitrary point-to-point entanglement
+routing, all node-pairs (i, j) have access to an indefinite
+supply of maximally-entangled Bell pairs,
+|Ψ⟩i,j =
+1
+√
+2
+(|0⟩i |0⟩j + |1⟩i |1⟩j), (6.17)
+requiring full O(n2) quantum communications connectivity.
+For the nth copy of |Ψ⟩i,j both nodes independently
+and privately choose measurement bases,
+bi(n), bj(n) ∈ {0, 1}, (6.18)
+where b = 0 denotes the Pauli-Z basis and b = 1 the
+Pauli-X basis, and record their associated measurement
+outcomes,
+mi(n),mj(n) ∈ {0, 1}. (6.19)
+The subset of measurement outcomes where both parties
+operate in the same basis defines a shared random bitstring,
+si,j = {m(n) | bi(n) = bj(n)}n. (6.20)
+These post-selected bit-strings correspond identically to
+those provided by the E91 (Ekert, 1991) QKD protocol.
+The BB84 protocol (Bennett and Brassard, 1984) can be
+similarly employed with the interpretational difference
+that for one party b and m denote encoding, for the other
+measurement.
+Physical and implementation errors reduce the otherwise
+perfect measurement correlations between nodes
+measuring in the same basis resulting in inconsistent
+shared strings. However, privacy amplification (Impagliazzo
+et al., 1989) may be used to reduce an imperfect
+random bit-string to a shorter one with higher entropy
+using classical post-processing.
+1. Consensus protocol
+Associating QKD bit-strings si,j with graph edges we
+assume a certification function,
+fQKD(si,j) → {0, 1}, (6.21)
+which evaluates true if si,j passes a certification test for
+randomness. We define a QKD compliance graph with
+edge-inclusion based on the validity of the respective
+QKD bit-strings,
+G(comp)
+QKD : ei,j = fQKD(si,j). (6.22)
+19
+i j
+si,j = QKDi,j
+Kn
+i j
+ei,j = fQKD(si,j)
+K|QKD|
+GQKD = K|QKD|
+Figure 16: QKD proof-chain for shared quantum randomness.
+Amongst n nodes with full O(n2) quantum communications
+connectivity given by the complete graph Kn,
+every node executes a QKD protocol with every other node,
+associating a shared random bit-string si,j (received by i from
+j) with every edge. Bit-strings passing a QRN certification
+function fQKD(si,j) define the edges of a subgraph, where certification
+acts as an implied vote of honesty. Maintaining only
+vertices connected to a majority of other nodes followed by
+eliminating those not connected to every other, we obtain a
+complete subgraph GQKD reflecting the unanimous majority.
+Letting the QKD compliance of nodes be,
+G(comp)
+QKD : vi = Majority
+
+
+[
+j̸=i
+ei,j
+
+, (6.23)
+the reduced graph now only contains nodes whose associated
+QKD bit-strings si,j are majority valid.
+Additionally requiring unanimity demands finding a
+fully-connected subgraph, or clique6, achieved by eliminating
+all vertices in G(comp)
+QKD not connected by an edge
+to every other node,
+GQKD : vi =
+(
+1 if |ui ∈ G(comp)
+QKD | = |G(comp)
+QKD | − 1
+0 otherwise
+.
+(6.24)
+The fully connected GQKD = K|GQKD| subgraph now represents
+the accepted subset of QKD-compliant nodes
+under consensus. The associated collectively established
+shared random bit-string is defined as,
+s(GQKD) =
+M
+vi,vj∈GQKD
+si,j . (6.25)
+Although nodes could commit post-processed QKD
+strings obtained following post-selection and privacy
+amplification, this requires interaction between respective
+nodes. In the interests of maintaining a broadcastonly
+communications interface nodes may simply commit
+their raw unprocessed strings (b and m) from which the
+associated QRNs s are implied under a network-agreed
+post-processing function fPP(⃗b, ⃗m) →⃗s.
+6 While the MaxClique problem of finding the largest cliques in
+a graph is known to be NP-complete in general, here we are not
+finding maximal cliques, affording an efficient solution.
+D. Interactive proofs of quantumness
+An interactive proof of quantumness (Liu and Gheorghiu,
+2022; Zhu et al., 2023) comprises two parties, a
+prover and a verifier, where the goal is for the prover to
+prove to the verifier that they have honestly executed a
+quantum implementation of some function f(·) that cannot
+be spoofed by classical simulation. The verifier has
+only classical resources and both parties may classically
+communicate.
+While such protocols are not known in general for arbitrary
+f(·), they have been described in the context of a
+restricted class of functions known as trapdoor claw-free
+functions.
+1. Trapdoor claw-free (TCF) functions
+Trapdoor claw-free functions (TCF) are a class of cryptographic,
+2-to-1, one-way functions,
+fI(x) → w, (6.26)
+which are classically efficient to evaluate in the forward
+direction, but for which it is hard to find simultaneously
+satisfying inputs {x0, x1} (the ‘claw’) mapping to the
+same output,
+f(x0) = f(x1) = w, (6.27)
+where x ∈ {0, 1}n and w ∈ {0, 1}n−1 are bit-strings.
+Here, I denotes a problem instance derived from a secret
+(the trapdoor). If the secret is known, finding claws
+{x0, x1} is classically efficient for any w. Since f(·) is easy
+to evaluate in the forward direction, verifying solutions
+is classically efficient, and the problem of claw-finding by
+definition resides in the complexity class NP.
+2. The LWE problem
+A candidate TCF is the lattice-based learning with errors
+(LWE) problem (Goldwasser et al., 1985; Regev,
+2009, 2010). This problem is believed to be postquantum,
+where the associated claw-finding problem lies
+outside of BQP, the class of problems efficiently solvable
+by quantum computers7.
+For matrix,
+A ∈ Zm×n
+q , (6.28)
+7 An alternate number-theoretic TCF based on Rabin’s function
+has been described (Goldwasser et al., 1988; Rabin, 1979). Since
+here the complexity of inverting the trapdoor reduces to integer
+factorisation this candidate TCF is vulnerable to quantum attack
+via Shor’s algorithm (Shor, 1997), making it less applicable in the
+assumed context of universal quantum computation.
+20
+and vectors,
+x, y, s, e ∈ {0, 1}n, (6.29)
+related by,
+y = A · s + e, (6.30)
+under modulo q arithmetic where q is prime, a TCF may
+be constructed as,
+fI(b, xb) = ⌊A · x + b · y⌉, (6.31)
+where b = {0, 1} is a single bit and claws are related by,
+x0 = x1 + s. (6.32)
+Here, I = {A, y} specifies the problem instance derived
+from the secret trapdoor T = {s, e} secretly held by the
+verifier, enabling efficient classical claw-finding and verification
+if known.
+Since f(x) → w is classically efficient to evaluate in the
+forward direction, it is easy to find a w for which a single
+satisfying input x is known. The challenge lies in finding
+simultaneously satisfying pairs of inputs, believed to be
+hard for both classical and quantum computers.
+* Non-interactive implementation, where Uh |x⟩ =
+(−1)h(x) |x⟩ implements phase-encoding which is inherently
+unitary for any one-bit hash function h : {0, 1}∗ →
+{0, 1}
+* Simplified proof (one less round):
+* d: measurement outcomes.
+* b: adaptive hardcore bit.
+* m: basis.
+|ψh⟩ = Uh Uf |ψ0⟩ =
+1
+√
+2n
+X
+b,x
+(−1)h(b,x) |b, x⟩ . (6.33)
+* With adaptive hardcore bit expressed as:
+|ψw⟩ = ˆΠw |ψh⟩
+=
+1
+√
+2
+(|0, x0⟩ + (−1)h(0,x0)+h(1,x1) |1, x1⟩) |w⟩
+(6.34)
+* Then...
+3. Interactive proof protocol
+Taking a cryptographic TCF function, fI(x) → w, an
+interactive proof of quantumness may be implemented as
+follows:
+1. The verifier specifies a problem instance I, without
+revealing the associated secret T from which it was
+derived.
+2. The prover prepares a uniform superposition of all
+length-n bit-strings x via a Hadamard transform,
+|ψ0⟩ = ˆH ⊗n |0⟩⊗n =
+1
+√
+2n
+X
+x∈{0,1}n
+|x⟩ . (6.35)
+3. Evaluating f(x) into an output register yields8,
+|ψf ⟩ = Uf |ψ0⟩ |0⟩ =
+1
+√
+2n
+X
+x∈{0,1}n
+|x⟩ |f(x)⟩ , (6.36)
+which may be efficiently prepared using a quantum
+circuit with,
+O(n2 log2 n), (6.37)
+gate count (Kahanamoku-Meyer et al., 2022).
+4. The prover measures the output register, obtaining
+measurement outcome w which is communicated
+to the verifier. Measuring w collapses the x-register
+onto the equal superposition of associated satisfying
+pre-images,
+|ψw⟩ = ˆΠw |ψf ⟩ =
+1
+√
+2
+(|x0⟩ + |x1⟩) |w⟩ , (6.38)
+where ˆΠw = |w⟩ ⟨w| is the measurement projector
+for outcome w on the ancillary y register. As the xregister
+was initialised into a uniform superposition
+over all length-n bit-strings and the TCF is a 2-to-1
+function, w is sampled uniformly at random.
+8 The unitarity of quantum circuits prohibits direct evaluation of
+classical functions on quantum registers in general,
+ˆU
+f |x⟩ ̸→ |f(x)⟩ ,
+where ˆUf denotes a quantum circuit evaluating classical function
+f(·). Introducing ancillary quantum register |y⟩ affords the
+reversible classical transformation (x, y) ↔ (x, y ⊕ f(x)), which
+may be implemented unitarily in general,
+ˆU
+f |x⟩ |y⟩ → |x⟩ |y ⊕ f(x)⟩ .
+Considering a single output bit of f(·), ˆUf admits the decomposition,
+ˆU
+f = ˆΠ0 ⊗ ˆI + ˆΠ1 ⊗ ˆX,
+where,
+ˆΠ
+i =
+X
+x | f(x)=i
+|x⟩ ⟨x| ,
+are projectors onto the subspaces of x satisfying f(x) = i (Nb:
+ˆΠ
+0 + ˆΠ1 = ˆI, ˆΠ0 · ˆΠ1 = 0). The unitarity of ˆUf follows, independent
+of f(·),
+ˆU
+†
+f · ˆUf = (ˆΠ0 ⊗ ˆI + ˆΠ1 ⊗ ˆX )2 = ˆI.
+Repeating for all output bits and letting y = 0 yields,
+ˆU
+f |x⟩ |0⟩ → |x⟩ |f(x)⟩ .
+21
+n n n
+n−1 n−1
+f b
+|0⟩ H⊗n
+Uf
+H⊗n m
+|0⟩ w
+x x
+y y ⊕ f(x)
+(a) Two-round IPQ protocol, where f is the TCF problem instance specified by the verifier. The prover executes the first round of the
+protocol, measuring the y register to obtain classical outcome w ∈ {0, 1}n−1. After receiving w from the prover the verifier communicates
+a random measurement basis b ∈ {X,Z} for the prover to measure the x register in, yielding outcome m ∈ {0, 1}n. With knowledge of the
+problem instance’s secret trapdoor the verifier can efficiently verify the prover’s response from (f,w, b,m).
+n n
+n−1 n−1
+f
+|0⟩ H⊗n
+Uf
+Uh H⊗n m
+|0⟩ w
+x x
+y y ⊕ f(x)
+(b) Single-round IPQ protocol, replacing the randomly chosen b specified by the verifier with a hash-function-based quantum random
+oracle.
+Figure 17: Quantum circuits for interactive proofs-of-quantumness (IPQ). Blue boxes contain all quantum operations
+within the protocol with classical inputs and outputs. (a) Two-round and (b) simplified single-round implementations.
+5. The verifier specifies a random measurement basis
+in which the prover should measure qubits in the x
+register, where b = {0 ≡ ˆ Z, 1 ≡ ˆX} correspond to
+the respective Pauli measurement bases.
+6. When measuring in the b = 0 ( ˆ Z) basis, the prover
+randomly measures either m = x0 or m = x1, easily
+verified by direct evaluation of f(x) → w and
+comparison with the prover’s previously reported
+w. When measuring in the b = 1 ( ˆX) basis verification
+succeeds if m · x0 = m · x1. The verification
+rules are,
+ˆ Z (b = 0) : m = {x0, x1},
+ˆX
+(b = 1) : m · x0 = m · x1. (6.39)
+7. The above is repeated some constant number of
+rounds, independently randomising the measurement
+basis b at every round.
+The key observation is that since ˆX and ˆ Z measurements
+do not commute, it is not possible for the prover
+to know both measurement outcomes simultaneously and
+therefore must measure in accordance with the verifier’s
+stated measurement basis to pass verification of a single
+round. While a single round can be classically spoofed if
+the measurement basis b is known in advance of announcing
+w, if unknown, b can only be guessed with a probability
+of 1/2. Upon repetition, the probability of correctly
+guessing all measurement bases scales as p = 1/2n for n
+rounds, ensuring asymptotic confidence in the honesty of
+the prover.
+4. Consensus protocol
+To incorporate IPQs into the QCN framework we require
+all nodes to act as both prover and verifier for all
+other nodes.
+In the verifier capacity every node prepares a single
+random TCF instance for all other nodes to prove. Despite
+solving the same problem instance their proofs will
+be distinct.
+Following the same approach as with QKD we represent
+the proofs-of-quantumness via a complete graph
+with the distinction that as this is an asymmetric protocol
+the graph is now directed (from prover to verifier)
+with edges in both directions for every node-pair.
+Majority votes as per Eq. (6.23) are now made from
+the verifier perspective.
+The additional synchronous steps required to accommodate
+IPQs are:
+1. Nodes commit a single random problem instance
+Ii.
+2. Nodes execute the quantum problem instance specified
+by every other node j and commit the obtained
+wi,j .
+3. Nodes commit the random measurement bases bi
+other nodes will be required to measure in.
+4. Nodes complete their quantum computations and
+commit the obtained measurements mi,j .
+5. Nodes reveal their secrets Ti.
+22
+Assuming a verification function analogous to
+Eq. (6.21),
+fIPQ(Ii, Ti,wi,j , bi,mi,j) → {0, 1}, (6.40)
+similarly defines a directed IPQ compliance graph,
+Gcomp
+IPQ : ei,j = fIPQ(Ii, Ti,wi,j , bi,mi,j) → {0, 1}.
+(6.41)
+VII. SOCIOECONOMICS
+A. Economics
+Internally, the DCN operates as a cooperative, profitneutral,
+barter economy, whose nodes facilitate an
+externally-facing competitive bidding market for consensus.
+Nodes’ subjective cost of consensus is identically
+their own computational execution cost, individually incentivising
+computational and communications implementation
+efficiency.
+Proof-of-work associates the creation of money with
+exchange, creating a monetary dependence on algorithmic
+inefficiency. DCNs are monetarily neutral, providing
+consensus as a generic and abstract commodity in a competitive
+market environment.
+The DCN is a floating market instrument with instantaneous
+value. Consensus is necessarily consumed upon
+production and cannot be saved.
+* Consensus nodes individually utilise and monetise
+their gateway to the network facilitating highly competitive
+and high volume consensus markets.
+B. Strategic considerations
+??? TO DO
+N
+NH
+ND
+Figure 18: Bifurcation in network trust. When the network
+N = NH ∪ ND supporting a blockchain segregates into
+two non-interacting networks, NH and ND, a fork is created,
+forming two unique, legitimate blockchains, one associated
+with each network.
+SA
+SB
+SB ⊂ SA
+SC
+SC ⊂ SA
+Figure 19: Trust hierarchies represented as subset-trees define
+retreat strategies.
+Fig. 19
+‘Rebasing’ network upon strategic retreat.
+Retreat strategy in trust hierarchy where root is level
+i = 0. Levels represent set containment, si+1 ⊂ si. Retreat
+to smallest i (i.e largest trusted subset). Assume
+that ri+1 < ri. Inequality could work in either direction??
+C. Network democratisation
+* The adoption of network policy changes and node
+membership is inherently democratic.
+* Individual trust counters.
+* PoCs signs the adopted constitution.
+* Propose policy changes. Accepted upon majority.
+VIII. DISTRIBUTED COMPUTING
+A. Protocols
+Protocols are user-level applications for consensus, defined
+as arbitrary time-dependent functions acting on the
+current state of the broadcast channel,
+Protocol(B(t = 0), ⋆) → ⋆, (8.1)
+where time is relative to the present. The state of the
+broadcast channel a time t contains all previous messages
+broadcasts, where,
+B(t = 0) =
+[
+x∈B(t≤0)
+x. (8.2)
+The state of the broadcast channel is in general subjective
+as individual users may have imperfect knowledge
+of B as a result of information loss. The subjective state
+of the broadcast channel for user i is,
+Bi ⊆ B. (8.3)
+Consequently, Protocol outputs are also subjective
+and may differ in general,
+Protocoli(Bi, ⋆) ̸= Protocol(B, ⋆) (8.4)
+* Interfaces
+23
+B. Distributed filesystems
+* Object storage counters. Promise in units of bitseconds.
+* Owner and anonymous ownership models.
+* Quasi-persistent storage model.
+* Dynamically load-balanced under randomisation.
+* Encoding density vs readout ability within islands of
+fractured network.
+1. Object stores
+Figure 20: Security tradeoffs between consensus set
+size and object storage lifetime. Using r(0) = 0. Corresponds
+to Fig. 4.
+* Object or blob storage.
+* Lifetime/consensus set size tradeoff for ε-security.
+Consider exponential decay model, interpreted as ...,
+r(t) = 1 − [1 − r(0)] e−t/τr . (8.5)
+* Asymptotic for r(t) = 1/2 as NC → ∞,
+tmax = τr log[2 − 2r(0)] (8.6)
+* See Fig. 20
+Figure 21: Maximum object lifetime. For NC → ∞.
+* See Fig. 21
+* All nodes locally record the hashes of all segments.
+Consensus is formed upon agreement of the hash-list.
+Converts malicious nodes to segment erasure.
+Consider an object storage model, a structurally flat
+persistent storage model in which arbitrary data objects
+are the primitive storage unit, residing in an object store
+(ObS) (Factor et al., 2005).
+Object stores supports the CRUD query primitives to
+Create, Read, Update and Delete objects (or Insert,
+Select, Update and Delete in SQL database
+terminology).
+Scalable distributed objects stores (DObS) must support
+concurrency control, the ability to safely execute
+multiple object queries simultaneously without causing
+race conditions, yielding undefined outcomes or data corruption.
+Concurrency control requires serialisation of conflicting
+operations on common data, often implemented using
+mutual exclusion (mutex) synchronisation primitives,
+analogous to ensuring thread-safety in asynchronous programming
+environments. The actor model for concurrency
+mitigates race conditions by assigning operations
+on a common object to a single execution thread – the actor
+– which executes them synchronously (Hewitt et al.,
+24
+1973).
+DCN object stores assign consensus sets as actors on
+object queries, where consensus set C(objx) is assigned
+as the actor for object objx. Nodes in C(objx) are exclusively
+responsible for storing and querying objx.
+Bids may now encapsulate object queries, where Create
+queries are executed by newly-assigned consensus
+sets, while Read and Delete queries are executed by
+the consensus sets the respective object was initially assigned
+to.
+* Predicates. Nodes independently evaluate queries.
+Queries operating on objects for which a node is an actor
+are dispatched to consensus tasks, which are inherently
+thread-safe and may be executed asynchronously.
+* DObS write: All nodes calculate list of all segment
+hashes.
+Let d(enc)
+i,j be information symbol j held by node i during
+encoding, and,
+hi,j = Hash(d(enc)
+i,j ), (8.7)
+the respective reported hash. Consensus is formed upon
+the hash list h(con).
+DObS read: Consensus formed on which segments are
+correctly recovered:
+ei,j = [Hash(d(dec)
+i,j ) = h(con)
+j ], (8.8)
+where [·] denotes the Iverson bracket. Outcome is
+consensus-agreed hash list upon encoding, h(enc).
+* What about update?
+* Since consensus outcomes either succeed or fail
+queries are inherently atomic.
+* Since consensus inherently timestamps operations
+the object store is inherently versioned.
+2. Distributed erasure codes
+Object stores must afford high storage reliability and
+integrity. In a distributed environment with variable node
+participation and and non-zero node storage failure this
+requires redundancy to maintain high likelihood of object
+retrieval.
+Most simply, this may be implemented using mirroring
+whereby multiple copies of data are stored independently
+as backups should some become unavailable, the
+approach used in RAID (type 1) storage arrays. More
+generally, data redundancy may be implemented using
+error correcting codes (ECCs).
+There are two primary error models ECCs may be applied
+to:
+• Bit errors: Bits are randomly subject to bit-flips.
+In the absence of error detection these are unlocated
+errors, meaning it is not known where they
+occurred.
+• Erasure errors: Bits are randomly lost. These will
+be treated as located errors where their location is
+known.
+The error-correcting properties of block ECCs are
+characterised by,
+[n, k, d], (8.9)
+for a code encoding k information bits into length n codewords
+with code distance d (the minimum Hamming distance
+between any two codewords). The code’s rate is
+given by,
+r =
+k
+n
+. (8.10)
+In general, the information provided by known error
+locations enables erasure codes to exhibit higher error
+tolerance than bit-error codes. Specifically, an ECC can
+correct twice as many erasures (E) as errors (S), following
+the tradeoff inequality,
+2E + S ≤ d. (8.11)
+Fountain codes (Asteris and Dimakis, 2014; Joshi
+et al., 2010; MacKay, 2005) are a class of ECCs exhibiting
+the fountain properties:
+• Any subset of k encoded symbols is sufficient to
+decode the source symbols with high probability.
+Fountain codes are rateless since the number of
+erasures may be arbitrary so long as the required
+number of codeword symbols are received.
+• Encoding and decoding operations exhibit linear
+time-complexity, O(k).
+Fountain code codewords are constructed by bitwise
+XORing random subsets of information symbols according
+to the code’s Tanner graph (Fig. 22), with degree
+sequence sampled from a probability distribution PD(x).
+Luby transform (LT) codes (Luby, 2002) were the first
+practical realisation of fountain codes where k information
+symbols are recoverable from any set of,
+k + o = k + O(
+√
+k log2(k/δ)), (8.12)
+codeword symbols with success probability,
+Prec = 1 − δ, (8.13)
+using a decoding algorithm with,
+O(k log(k/δ)), (8.14)
+time-complexity, where o is the code’s overhead.
+For LT codes an optimal degree sequence distribution
+is the Ideal Soliton distribution,
+PD(x) =
+(
+1
+k , x = 1,
+1
+x(x−1) , 2 ≤ x ≤ k.
+(8.15)
+25
+####...
+#
+⊕
+⊕
+⊕
+⊕
+⊕
+...
+⊕
+x1
+x2
+x3
+x4
+xk
+c1
+c2
+c3
+c4
+c5
+cn
+PD(x)
+Figure 22: Tanner graph for fountain codes. The Tanner
+graph captures which information symbols (xi) combine under
+bitwise XOR to produce the respective codeword symbols
+(cj) according to edge existence. The degree sequence d(x)
+is randomly sampled from a probability distribution PD(x)
+specific to the code. For Fountain codes, receiving any k + o
+codeword symbols guarantees decoding with high probability.
+The efficiency of LT codes may be enhanced using
+Raptor codes (Shokrollahi, 2006; Shokrollahi and Luby,
+2011), composing an LT code with a conventional block
+erasure pre-code such as Tornado codes (Luby et al.,
+1997).
+Objects are in general sparsely encoded in a DCN-ObS
+since N ≫ n, where,
+renc =
+k + o
+n
+, (8.16)
+is the encoding density. Since n = |C| can be treated as
+a constant for given security/data recoverability thresholds,
+encoding density scales as renc = O(1/N).
+Encoding k information symbols across a consensus set
+of size NC affords an overhead of,
+o = NC − k, (8.17)
+with respective object loss probability,
+δ = O
+ 
+exp
+"
+−
+s
+rfNC − k
+√
+k
+#!
+, (8.18)
+for node storage failure rate rf (Fig. 23).
+* Treating Pdec as the ObS
+* Fig. 24.
+* To ensure consistent interpretation of the degree sequence
+d(x) across nodes PD(x) is seeded by the network’s
+shared random variable XN, yielding P(XN)
+D (x).
+* Primitive storage operations are Insert, Remove
+and Modify.
+Figure 23: Object recovery probability using a distributed
+fountain code. k information symbols are encoded
+across a consensus set of size NC with node storage failure rate
+rf . Contours lines show log10(δ).
+Figure 24: ???.
+* Sparse storage for N ≫ n.
+* Liquid cloud storage: (Luby et al., 2019)
+kmaj = ⌊N/2⌋ + 1. (8.19)
+Hence, the likelihood of compromise is,
+PC(N, r) = Ir(⌊N/2⌋ + 1,N − ⌊N/2⌋). (8.20)
+* Could use any block erasure code.
+To apply fountain codes to distributed storage we subdivide
+arbitrary data objects into k segments forming
+the input symbols to the code. From the input symbols
+n unique codewords are prepared, which are distributed
+and stored across n nodes. So long as k of the n nodes are
+compliant the input symbols are recoverable. The likeli26
+hood of successful data recovery is analogous to Eq. (3.1),
+PR(n, k, rf ) =
+Xn
+k′=k
+
+n
+k′
+
+rf
+n−k′
+(1 − rf )k′
+=??? (8.21)
+where rf is the node failure rate and n = |C| since objects
+are stored only by their respective consensus set actors.
+C. Distributed computational models
+1. MapReduce model
+The consensus assignment problem may be interpreted
+more generically as randomised dynamic load allocation.
+Consider the case of |C| = 1 consensus sets, the delegation
+of computational workloads to single randomly allocated
+nodes. In this context the consensus assignment
+algorithm facilitates dynamic load balancing across the
+network. Similarly, |C| > 1 equates to dynamic allocation
+with |C|-fold redundancy where consensus is formed on
+the outcome.
+More generally, MapReduce-type (Dean and Ghemawat,
+2008) computations may be delegated to consensus
+sets of arbitrary size, where the Map routine corresponds
+to the assignment of consensus nodes and the
+Reduce routine is evaluated by consensus.
+* Distributed queries.
+* Consider asymmetric bidding if preserving r is not a
+consideration.
+2. Virtual thread pools
+* Parallel and concurrent models allow interprocess
+communication via observation of objects owned by other
+actors.
+3. Transactional model
+DCNs naturally lend themselves to a transactional
+model for computation. Let S ⊆ N denote a subset of
+network nodes, where s ∈ S is the data held by node s,
+and S forms a fully-connected graph clique,
+G(S) = K|S|. (8.22)
+The concurrency model for transactional computing
+allows data mutation via execution of pure functions9 of
+9 Pure functions strictly operate only on their arguments and are
+algorithmically independent of externally-scoped parameters or
+variables.
+the form,
+f : X → X. (8.23)
+Implies,
+f : X × Y → X × Y, (8.24)
+where X ∩ Y = ∅.
+* Enforces: f(X × Y ) = f(X) × f(Y ).
+* Disallowed: f : X × Y ↛ X.
+* Endofunction (same domain and co-domain)
+For disjoint sets A ∩ B = ∅ this imposes data isolation
+and consistency between concurrent execution of
+f(A) → A and f(B) → B. Since the evaluation of f is
+via consensus which either succeeds or fails, data mutation
+is inherently atomic.
+Function evaluation and data mutation that complies
+with these constraints maps isolated subnets to independent,
+thread-safe execution domains, affording a liquid
+concurrency model.
+• Trade restricted to exchanges between clique members.
+• Clique hierarchy under network partitioning.
+• https://chat.openai.com/c/
+ac218812-aa5e-4003-90ed-d7807cea9e1f
+• Conceptually aligns with transactional models for
+computation.
+• Subset hierarchy defines its data-dependence hierarchy.
+• “Define operations as functions on power sets”
+• Hasse Diagram Representation -¿ partitions are disjoint
+paths.
+• Graph theoretically defined algorithms.
+D. Distributed signature authorities
+* Consensus on state of knowledge. Trust in knowledge.
+Oracle.
+* Explain simple redundancy as repetition code.
+E. Liquid networks
+* Fragmentation.
+* Multi-clique decomposition.
+* Self-healing upon re-encoding.
+* Dynamic connectivity.
+* Relate clique spectrum to connection probability.
+* All islands must have at least NC nodes to operate.
+* ObS object retrieval is possible under sparse encoding
+so long as island size N(i) ≥ k + o with respectively
+defined δ.
+27
+IX. BLOCKCHAINS
+Consensus is formed on state register transformations.
+Ledgers are defined by policies stipulating the consensus
+networks they recognise. Inter-ledger operations require
+only mutual recognition of consensus networks.
+Ledgers as oracles.
+Finite state machine oracles.
+The combined public broadcasts across all networks
+acts as a global oracle for ledger states, facilitating a
+high arbitrage environment in an algorithmic context, an
+equilibrating force across the ledgers of parallel markets
+or interconnected markets.
+Inter-ledger transactions require only mutual recognition
+of consensus, defined by the networks from which
+they are drawn.
+* Sec: ledger transaction queues.
+* Hierarchical bidding to maximise resource utilisation.
+* Subsection: blockchains.
+Blockchains are protocol-level applications for consensus,
+following their own rules on what consensus is formed
+on. A blockchain’s transaction history is immutable and
+may be retrospectively evaluated. Blockchain implementations
+typically consider asynchronous operating environments.
+In this setting simultaneous block additions
+manifest themselves as forks, requiring error correction
+mechanisms to maintain the integrity of the chain. Formally,
+a pool of valid block additions defines a directed
+tree graph which the blockchain implementation must
+correct to a directed linear graph.
+In a synchronous setting where a ledger is associated
+with consensus derived from a given network these considerations
+change. Rather than performing consensus assignment
+on the basis of unique transaction identifiers we
+assign on the basis of transaction queue identifiers associated
+with individual ledgers. From the pool of accepted
+bids nodes assigned to a given transaction queue consensus
+set process all bids associated with that queue,
+batch processed in accordance with the ledger’s transaction
+amalgamation rules. Employing queue assignment
+rather than transaction assignment mitigates the possibility
+of fork formation. In a proof-of-work setting this
+issue may be addressed by introducing friction. However,
+while this hinders double-mining it also undermines
+transaction processing rates, an undesirable tradeoff.
+If n consensus sets of size N independently form honest
+majority their union of size nN necessarily forms honest
+majority. Hence,
+P(nN, r) ≤ ε ⇒ P(N, r)n ≤ ε. (9.1)
+For n = 1 this reduces to consensus by majority vote
+amongst N parties, while the opposing limiting case of
+n = N reduces to consensus by unanimity amongst N
+parties. A blockchain with unanimous n-level retrospective
+verification affords εn-security, and the associated
+tradeoff in required consensus set size scales as,
+Nmin(r, ε) = N(n)
+min(r, εn), (9.2)
+which implies,
+Pc(N, r) = Pc(N(n), r)n. (9.3)
+Now ε represents the effective error rate in new block
+additions while ε′ = εn is the effective security parameter
+which applies only to blocks at least n steps back,
+which have been subject to n independent verifications.
+These blocks are considered complete whereas more recent
+blocks are considered pending, potentially still subject
+to being invalidated (Fig. 25). Only the most recent
+complete block must persist to maintain the blockchain,
+the point to which the blockchain is reverted if pending
+blocks are invalidated.
+εn
+εn
+εn
+εn−1
+...
+...
+ε
+complete pending
+n
+Figure 25: Blockchain with n-level reverse integrity
+checking. Upon addition of the top-level block consensus requires
+verifying integrity going back n blocks. If consensus has
+ε-security, for i ≤ n the ith past block will have been verified
+i times, exhibiting cumulative εi-security. Blocks i ≥ n
+all exhibit ε′ = εn integrity, the security parameter of the
+blockchain. The ε-security of the top block may be interpreted
+as the effective error rate in block addition, where error correction
+is implemented at the blockchain’s protocol level.
+X. CONCLUSION
+REFERENCES
+Asteris, Megasthenis, and Alexandros G. Dimakis (2014),
+“Repairable fountain codes,” IEEE Journal on Selected Areas
+in Communications 32, 1037.
+Back, Adam (2002), “Hashcash — a denial of service countermeasure,”
+.
+Bennett, C H, and G. Brassard (1984), “Quantum cryptography:
+Public key distribution and coin tossing,” Proceedings
+of the IEEE , 175arXiv:2003.06557.
+Bentov, Iddo, Ariel Gabizon, and Alex Mizrahi (2017), “Cryptocurrencies
+without proof of work,” arXiv:1406.5694.
+28
+0 1
+0
+1
+n = 1
+ε′ = ε
+cost = N
+MajorityVote
+n = N
+ε′ = r
+cost = 1
+UnanimousVote
+ε
+ε′
+Figure 26: Tradeoffs in blockchain integrity with retrospective
+consensus verification. ??? TODO
+Buterin, V (2013), “Ethereum: A next generation smart contract
+& decentralized application platform,” .
+Cambridge Centre for Alternative Finance, (2023), “Cambridge
+Bitcoin Electricity Consumption Index (CBECI),”
+.
+Dean, Jeffrey, and Sanjay Ghemawat (2008), “Mapreduce:
+Simplified data processing on large clusters,” Commun.
+ACM 51, 107.
+Dwork, Cynthia, and Moni Naor (1993), “Pricing via processing
+or combatting junk mail,” in Advances in Cryptology —
+CRYPTO’ 92 , edited by Ernest F. Brickell (Springer Berlin
+Heidelberg) p. 139.
+Ekert, Artur K (1991), “Quantum cryptography based on
+Bell’s theorem,” Physical Review Letters 67, 661.
+Factor, M, K. Meth, D. Naor, O. Rodeh, and J. Satran (2005),
+“Object storage: the future building block for storage systems,”
+in 2005 IEEE International Symposium on Mass
+Storage Systems and Technology, p. 119.
+Fisher, Ronald Aylmer, and Frank Yates (1953), Statistical
+tables for biological, agricultural, and medical research
+(Hafner Publishing Company).
+Gale, David (1957), “A theorem on flows in networks,” Pacific
+J. Math. 7, 1073.
+Goldwasser, Shafi, Silvio Micali, and Ronald L. Rivest (1985),
+“A “paradoxical” solution to the signature problem,” in Advances
+in Cryptology (Springer Berlin Heidelberg) p. 467.
+Goldwasser, Shafi, Silvio Micali, and Ronald L. Rivest (1988),
+“A digital signature scheme secure against adaptive chosenmessage
+attacks,” SIAM Journal on Computing 17, 281.
+Hakimi, S L (1962), “On realizability of a set of integers as
+degrees of the vertices of a linear graph. I,” Journal of the
+Society for Industrial and Applied Mathematics 10, 496.
+Havel, V´aclav (1955), “A remark on the existence of finite
+graphs,” ˘Casopis Pro P˘estov´an´ı Matematiky 080, 477.
+Hewitt, Carl, Peter Bishop, and Richard Steiger (1973), “A
+universal modular actor formalism for artificial intelligence,”
+in Proceedings of the 3rd International Joint Conference
+on Artificial Intelligence, IJCAI’73 (Morgan Kaufmann
+Publishers Inc.) p. 235.
+Impagliazzo, R, L. A. Levin, and M. Luby (1989), “Pseudorandom
+generation from one-way functions,” in Proceedings
+of the Twenty-First Annual ACM Symposium on Theory
+of Computing, STOC ’89 (Association for Computing Machinery)
+p. 12.
+Joshi, Gauri, Joong Bum Rhim, John Sun, and Da Wang
+(2010), “Fountain codes,” in Global telecommunications
+conference (GLOBECOM 2010), p. 7.
+Kahanamoku-Meyer, Gregory D, Soonwon Choi, Umesh V.
+Vazirani, and Norman Y. Yao (2022), “Classically verifiable
+quantum advantage from a computational Bell test,”
+Nature Physics 18, 918.
+King, Sunny, and Scott Nadal (2012), “PPCoin: Peer-to-peer
+crypto-currency with proof-of-stake,” .
+Lamport, Leslie, Robert Shostak, and Marshall Pease (1982),
+“The Byzantine generals problem,” ACM Trans. Program.
+Lang. Syst. 4, 382.
+Liu, Zhenning, and Alexandru Gheorghiu (2022), “Depthefficient
+proofs of quantumness,” Quantum 6, 807.
+Luby, M (2002), “Lt codes,” in 2013 IEEE 54th Annual Symposium
+on Foundations of Computer Science (IEEE Computer
+Society) p. 271.
+Luby, Michael, Roberto Padovani, Thomas J Richardson, and
+Pooja Aggarwal Lorenz Minder (2019), “Liquid cloud storage,”
+ACM Transactions on Storage (TOS) 15, 1.
+Luby, Michael G, Michael Mitzenmacher, M. Amin Shokrollahi,
+Daniel A. Spielman, and Volker Stemann (1997),
+“Practical loss-resilient codes,” in Proceedings of the
+Twenty-Ninth Annual ACM Symposium on Theory of
+Computing (Association for Computing Machinery, New
+York, NY, USA) p. 150–159.
+MacKay, David J C (2005), “Fountain codes,” IEE
+Proceedings-Communications 152, 1062.
+Nakamoto, Satoshi (2008), “Bitcoin: A peer-to-peer electronic
+cash system,” .
+Rabin, M O (1979), “Digitalized signatures and public-key
+functions as intractable as factorization,” .
+Regev, Oded (2009), “On lattices, learning with errors, random
+linear codes, and cryptography,” Journal of ACM 56,
+1.
+Regev, Oded (2010), “The learning with errors problem (invited
+survey),” in 2010 IEEE 25th Annual Conference on
+Computational Complexity, p. 191.
+Rohde, Peter P (2021), The Quantum Internet: The Second
+Quantum Revolution (Cambridge University Press).
+Ryser, H J (1957), “Combinatorial properties of matrices of
+zeros and ones,” Canadian Journal of Mathematics 9, 371.
+Sattolo, Sandra (1986), “An algorithm to generate a random
+cyclic permutation,” Information Processing Letters
+22, 315.
+Shannon, C E (1948), “A mathematical theory of communication,”
+The Bell System Technical Journal 27, 379.
+Shokrollahi, A (2006), “Raptor codes,” IEEE Transactions on
+Information Theory 52, 2551.
+Shokrollahi, Amin, and Michael Luby (2011), “Raptor codes,”
+Foundations and Trends in Communications and Information
+Theory 6, 213.
+Shor, Peter W (1997), “Polynomial-time algorithms for
+prime factorization and discrete logarithms on a quantum
+computer,” SIAM Journal on Computing 26, 1484,
+arXiv:quant-ph/9508027.
+Singh, Deepesh, Boxiang Fu, Gopikrishnan Muraleedharan,
+Chen-Mou Cheng, Nicolas Roussy Newton, Peter P. Rohde,
+and Gavin K. Brennen (2023), “Proof-of-work consensus by
+quantum sampling,” arXiv:2305.19865.
+YCharts, (2024), “Bitcoin network hash rate,” .
+Zhu, Daiwei, Gregory D. Kahanamoku-Meyer, Laura Lewis,
+Crystal Noel, Or Katz, Bahaa Harraz, Qingfeng Wang, An29
+drew Risinger, Lei Feng, Debopriyo Biswas, Laird Egan,
+Alexandru Gheorghiu, Yunseong Nam, Thomas Vidick,
+Umesh Vazirani, Norman Y. Yao, Marko Cetina, and
+Christopher Monroe (2023), “Interactive cryptographic
+proofs of quantumness using mid-circuit measurements,”
+Nature Physics 19, 1725.
+XI. IDEAS THAT WENT NOWHERE
+But I couldn’t let go...
+A. Consensus group
+ui
+uj
+vi
+vj
+xy
+ui
+uj
+vi
+vj
+⇐⇒
+xy
+⇐⇒
+Figure 27: Swap symmetry.???.
+* Space of satisfying graph assignments is given by
+the action of the consensus group on any valid graph
+assignment,
+{G} = Cd × Gn,d. (11.1)
+* Clarify edge transformations rather than U and V.
+* Permutation group
+* Graph automorphisms not the same as automorphisms
+over edges.
+* Automorphism group in edge space describes invariances.
+Sym/Aut gives consensus group?
+* Automorphism group over edge permutations is in
+general inequivalent to the conventional definition of a
+graph automorphism: for G = (V,E), (u, v) ∈ E ⇔
+(σ(u), σ(v)) ∈ E
+* Counting graph automorphisms is known to be
+* While all permutations within EU and EV are degree
+preserving, not all are unique.
+Transformations over the space of satisfying graph realisations
+of given degree sequence, d, defines the consensus
+group, C(d), fully characterised by its degree sequence.
+Over the space of satisfying graphs the consensus group,
+ϕ : C(d) × Gd → Gd, (11.2)
+is identically the symmetric group,
+ϕ : C(d) = Sym(Gd). (11.3)
+The action of the consensus group may be equivalently
+defined via permutations within the columns of satisfying
+edge-sets,
+ψ : C(d) × (EU × EV ) → (EU × EV ), (11.4)
+the group of non-degenerate permutations within the
+columns of E, which discounts permutations under which
+edge-sets remain invariant, a subgroup of the symmetric
+group acting on either column, both of length |E|,
+(ψ,EU,V ) ⊆ S|E|. (11.5)
+In the special case of 1-regular graphs, satisfying consensus
+assignments define bijective maps across graph
+partitions and the group action over edge-set columns
+is identically the symmetric group,
+ψ : C(d) = S|E|, δ(G) = Δ(G) = 1, (11.6)
+as there are no degenerate permutations.
+Hence, the order of the consensus group, equivalently
+the number of unique consensus assignments, is upperbounded
+by the order of the symmetric group acting on
+edge-sets, S|E|,
+|C(d)| ≤ |E|!, (11.7)
+with equality when Δ(G) = 1.
+Employing element-wise inequality notation for degree
+sequences, of equal length, |d| = |d′|,
+d′ < d := d′
+i < di, ∀ i, (11.8)
+affords the equivalent relations between degree sequences,
+satisfying assignment graphs and their respective subgroup
+structures,
+d′ < d ⇒ Gd′ ⊂ Gd ⇒ C(d′) ◁ C(d), (11.9)
+where C(d′) is a normal subgroup of C(d) and Gd′ is a
+subgraph of Gd under edge-removal.
+The number of bits required to uniquely address the
+group’s orbit scales as (Fig. 9),
+n = log2(|OrbC(E)|) ≤ log2(|E|!). (11.10)
+1. Generalised Fisher-Yates shuffle for finite groups
+The Fisher-Yates shuffle may be generalised to uniformly
+sample over other finite groups (Alg. 7).
+Alg. 4 may be interpreted as follows: for every index
+i the associated value vi is chosen uniformly from the
+set of unassigned values vj (where 0 ≤ j ≤ i). More
+generally, we would choose vi uniformly from the set of
+elements it is allowed to transition to under the action of
+the respective group. For the symmetric group, Sn, this
+includes all elements, whereas other groups in general
+constrain the set of allowed transitions.
+30
+Consider a group G defined over set X,
+ϕ : G × X → X. (11.11)
+Elements of the set x ∈ X individually transform under
+the group action of G to their orbit,
+OrbG(x) = G × x
+= {y ∈ X | ∃ g ∈ G | y = g · x} (11.12)
+defining sets for the allowed transitions of x under the
+action of G. For the symmetric group we have,
+OrbSn(x) = X, (11.13)
+as all elements may map to all others, while for other
+groups the orbit of x may be a subset of elements.
+We define the transition set, t, to be the set of allowed
+transitions of x under the group action of G, given by the
+intersection unassigned elements (s) and the orbit of x,
+t = OrbG(x) ∩ s. (11.14)
+Algorithm 7: Generalised Fisher-Yates shuffle for finite
+groups G.
+function GroupShuffle(⃗v, G) →⃗v ▷ O(n2)
+for i ← |⃗v| − 1 to 1 do ▷ O(n)
+s ← {⃗vj | 0 ≤ j ≤ i} ▷ Unassigned elements
+t ← TransitionSet(⃗vi, s,G) ▷ O(n)
+j ← Random(t) ▷ O(1)
+vi ↔ vj ▷ Exchange
+return ⃗v
+function TransitionSet(x, s, G) → t ▷ O(n)
+return (G × x) ∩ s ▷ Group action on reduced set
+WRONG FOR THE CONSENSUS GROUP:
+The uniqueness of execution paths in the generalised algorithm
+follows the same argument as for the the original
+scheme. The probability associated with an execution
+path is,
+P(⃗d) =
+Yn
+i=1
+p(⃗di) =
+Yn
+i=1
+1
+|ti|
+=
+Yn
+i=1
+1
+|OrbG(i) (xi)|
+, (11.15)
+where ⃗di = 1/|ti| is the probability of making choice
+j = ⃗di at level i under uniform sampling, and G(i) denotes
+the ith level subgroup of G = G(n) acting on the
+reduced set predicated on the removal of already assigned
+elements of X,
+G(i) × X(i) → X(i),
+X(i) = X\{xk}k>i,
+G(i−1) ◁ G(i), (11.16)
+defining a composition series followed by the algorithm
+to iteratively assign set elements,
+1 = G(0) ◁ · · · ◁ G(n−1) ◁ G(n) = G, (11.17)
+where each subgroup acts on the set predicated on the
+removal of an element from the set upon which the supergroup
+acts.
+As the consensus group is both free10 and transitive11
+it has regular12 group action and all group elements have
+the same orbit. Hence, |ti| is level-dependent on i but independent
+of group element x ∈ X and execution pathway
+l ∈ L. P(⃗d) is therefore a function of the group but
+uniform across all group elements.
+2. Uniformly sampling the consensus group (old)
+Uniformly sampling the consensus group is achieved
+by defining transition sets as per Alg. 8, whereby allowed
+transitions under edge exchanges vi ↔ vj satisfy
+the Boolean constraint,
+[(ui, vj) ̸∈ E] ∨ [(uj , vi) ̸∈ E] = 1, (11.18)
+requiring that newly created edges not be previously existing
+ones. ??? CHECK
+An vi ↔ vj exchange within edge-set E is equivalent
+to eliminating existing edges,
+ei = (ui, vi), ej = (uj , vj), (11.19)
+and replacing them with permuted edges,
+e′
+i = (ui, vj), e′
+j = (uj , vi). (11.20)
+Thus, edge-set invariance under vi ↔ vj requires,
+E\{ei, ej} ∪ {e′
+i, e′
+j} = E, (11.21)
+which implies,
+{e′
+i, e′
+j} ∈ E,
+E\{ei, ej} = E\{e′
+i, e′
+j},
+{ei, ej} = {e′
+i, e′
+j}. (11.22)
+Hence, the requirement exchanges vi ↔ vj not be edgeset
+invariant is,
+{e′
+i, e′
+j} ∈ E,
+E\{ei, ej} = E\{e′
+i, e′
+j},
+{ei, ej} = {e′
+i, e′
+j}. (11.23)
+10 Free groups: all elements are invariant under the action of all
+group elements except the identity,
+g · x = x ⇒ g = e.
+11 Transitive groups: all elements x ∈ X map to all elements y ∈ X
+under the action of some group element g ∈ G,
+x, y ∈ X | ∃ g ∈ G | g · x = y.
+12 Regular group action: ∀ x, y ∈ X | g · x = y, g ∈ G is unique.
+31
+* Need to clarify notation here. i here refers to index
+in E, but usually we use it for a node number.
+Algorithm 8: The transition set for the consensus group may
+be characterised by the constraints imposed by the group relations
+characterising non-degenerate transitions. The Transition
+function is a binary operator specifying whether index
+j is an allowed transition for index i, defining the respective
+transition set.
+function ConsensusShuffle(X, ⃗u, ⃗v) →⃗v ▷ O(n2)
+for i ← |⃗v| − 1 to 1 do ▷ O(n)
+t ← {0 ≤ k < i | Transition(i, k) = 1} ▷ O(n)
+j ← Random(X, t ∪ i) ▷ O(1)
+vi ↔ vj ▷ Exchange
+return ⃗v
+function AllowTransition(i, j) → {0, 1} ▷ O(n)
+return [(ui, vj) /∈ E] ∧ [(uj , vi) /∈ E]
+The regular action of the consensus group implies that
+under symmetrisation via uniform sampling all satisfying
+edge assignments {E} occur with equal probability, from
+which it follows,
+pu,v =
+deg(u)
+|V |
+,
+X
+v∈V
+pu,v = deg(u),
+X
+u∈U
+pu,v = 1,
+X
+u∈U,v∈V
+pu,v = |E|, (11.24)
+where pu,v is the probability of node u being assigned to
+consensus set v. * Regular action.
+* Use uniform bidding to preserve average case r. If
+non-uniform the effective r in consensus sets is biased
+towards the r of higher bidders.
+* ??? * For a given edge e = (u, v) in edge-set e ∈ E,
+the order of the orbit of vertex v under the group action
+ψ is,
+ψ : |OrbC(v)| = |V/v| = |V | − 1. (11.25)
+That is, vertex v may permute to any vertex other than
+itself.
+* ??? TODO. Fig. 5
+* Bipartite decomposition or bipartite dimension.
+Edge-disjoint union of complete bipartite graphs or bicliques.
+* Degree-preserving biclique decomposition.
+* Kmn defines invariant subgraphs under edgepermutation.
+Vertices within a Kmn subgraph define
+graph automorphisms under vertex permutations σ.
+φ : (u, v) ∈ E ⇐⇒ (σu, σv) ∈ E. (11.26)
+For complete graphs all vertex permutations within
+each bipartition define graph automorphisms,
+Aut(Km,n) = Sm × Sn. (11.27)
+* Graph sum (disjoint union)
+G(K)
+d =
+M
+b
+Kmb,nb . (11.28)
+* Not all graphs can be decomposed this way. Determining
+this is NP-hard in general.
+For Km,n,
+deg(u) = n, ∀ u ∈ U,
+deg(v) = m, ∀ v ∈ V. (11.29)
+* Admits graph automorphisms,
+×b
+(Smb × Snb ) ⊆ Aut(G(K)
+d ). (11.30)
+* Is it equality?
+u1
+u2
+u3
+...
+um
+v1
+v2
+...
+vn
+Km,n
+Figure 28: Complete bipartite graph, Km,n. Vertices in
+each bipartition have uniform degree.
+3. Counting bipartite graph realisations
+The structure of the ConsensusShuffle algorithm
+(Alg. 8) via Eq. (11.15) affords evaluation of the order
+of the consensus group equivalently counting bipartite
+graph realisations for a given degree sequence,
+|C(d)| = |Gd|. (11.31)
+* The regular action of C(d) affords the freedom to As
+all execution paths l ∈ L
+32
+u1 v1
+u1 v2
+u1
+...
+u1 vn
+u2 v1
+u2 v2
+u2
+...
+u2 vn
+...
+...
+um v1
+um v2
+um
+...
+um vn
+Figure 29: Canonically ordered edge-set for complete
+bipartite graph, Km,n.
+u1
+u2
+u3
+v1
+v2
+v3
+G3,2
+u1 v1
+u1 v2
+u2 v2
+u2 v3
+u3 v3
+u3 v1
+E
+Figure 30: Consensus assignment graph (G3,2) and its
+respective edge-set (E).
+Algorithm 9: Count satisfying bipartite graph realisations
+for degree sequence d. RedDeg(d) does not re-sort d, preserving
+its initial ordering. The elimination of zero-valued elements
+from d equates to relabelling, but does not change the
+respective graph structure.
+function CountBipartiteReal(d) → N
+d ← DegSort(d)
+N ← 1 ▷ Group orbit size
+for i ← 1 to |E| do ▷ O(|U| · |V |)
+t ← {0 ≤ k < i | Transition(i, k) = 1} ▷ O(n)
+N ← N · |t|
+return N
+4. Initial assignment
+* Policy approaches to ensure bipartite realisation:
+• Uniform bidding: All nodes request consensus sets
+of equal size as per the random subset problem.
+• Multiple uniform bidding: Nodes request multiple
+consensus sets of varying size, where the arrays of
+consensus set sizes are uniform across users.
+• Hierarchical bidding: ...
+Algorithm 10: (Hakimi, 1962; Havel, 1955) Deterministic
+consensus assignment via bipartite graph realisation of a given
+degree sequence, with O(|U| · |V |) time-complexity.
+function CanonicalGraph(U, V , d) → E
+E ← {} ▷ Edge set
+for u ∈ U do ▷ O(|U| · |V |)
+if deg(u) > 0 then
+for v ∈ V do
+if deg(v) > 0 then
+E ← E ∪ (u, v) ▷ Assign edge
+deg(u) ← deg(u) − 1 ▷ Decrement valence
+deg(v) ← deg(v) − 1
+if deg(u) = 0 then
+break
+x ←
+P
+u∈U deg(u) +
+P
+v∈V deg(v) ▷ Unassigned edges
+if x ̸= 0 then
+E ← ∅ ▷ Failure: unrealisable graph
+return E
+function DegSort(U, V ) → (U, V )
+U ← Sort(U | deg(ui) ≥ deg(ui+1)) ▷ O(|U| log |U|)
+V ← Sort(V | deg(vi) ≥ deg(vi+1)) ▷ O(|V | log |V |)
+return (U, V )
+* Fig. 7
+Gn,d : ei,j = [(j − i) mod n < d]. (11.32)
+B. Randomised timing
+Randomised timing of message sent by j at time tj and
+received by i. Let,
+χi,j = tj + τi,j + χ(w), (11.33)
+be the randomised time of receipt of arrival time of message
+from j by i.
+We require T0 ≥ τmax such that all honest nodes are
+acknowledged under worst-case latency.
+Considering the two limiting cases are τi,j = 0 and
+τi,j = τmax, we have,
+χ(min)
+i,j = χ(w) + tj ,
+χ(max)
+i,j = χ(w) + tj + τmax. (11.34)
+33
+The respective likelihoods of acceptance are,
+P(χ(min)
+i,j ≤ T0),
+P(χ(max)
+i,j ≤ T0). (11.35)
+P(χi,j ≤ T0) =
+
+
+0, χi,j < 0
+χi,j
+w , 0 ≤ χi,j ≤ w
+1, χi,j > w
+, (11.36)
+where the random variable has PDF,
+fχ(w)(t) =
+(
+1
+w, 0 ≤ t ≤ w
+0, otherwise
+, (11.37)
+with CDF
+Fχ(w)(t) =
+
+
+0, t < 0
+t
+w, 0 ≤ t ≤ w
+1, t > w
+. (11.38)
+The term τi,j/w is the uncertainty associated with lack
+of knowledge of τi,j , which may be treated as a random
+variable. When Var(τi,j) ≪ w this is vanishing. Thus for
+w ≫ Var(τi,j) the randomisation masks the latency profile.
+C. Changes to do & consistency
+Changes:
+• ”Sampling bias thereby reducing entropy” → manifests
+itself as non-uniformity in the sample space
+→ information theoretic discussion. How does this
+interplay work?
+• ”is the exchange operation the” → transpositions
+in group theory.
+• transition set is allowed transitions under action of
+the group: ie G × vi - elements already acted on
+since all elements must have unique inverses. (See
+4.25)
+• ”providing a very general protocol” → solution to
+the problem.
+• Intro: The Game nodes play in DCN.
+• ”rehashing individual keys”→additional hash bits.
+Extended hash lengths enables mulitple simultaneous
+allocations.
+• Properly define term consensus load/work.
+• U = N, V = {C}: change to ≡
+• ”where the worst-case lower-bound of p = 1/2
+arises” → is approached.
+• Ideas that went nowhere subtitle.
+Consistency rules:
+• Global key → shared random variable.
+Permissions:
+• Tikz code (3D pie chart)
+D. Miscellaneous notes 2
+To realise the full potential of distributed ledger and
+blockchain technology requires consensus availability.
+A fork may not be malicious and be by agreement.
+Relationship between consensus time and real time.
+Game play is deterministically played using nodes’ locally
+seeded pseudo-random function. avoid interaction.
+Game play is implied.
+Hash key base on concatenation not XOR.
+Additional network participation does not contribute
+to network throughput/bandwidth but must nonetheless
+be paid for, resulting in inflation of the cost of exchange.
+The market demands that exchange be fast and free,
+upon which
+Testament proves participation in a poc.
+An adaptive, interactive distributed algorithm in which
+any network nodes may participate.
+Play a game where the only rule is to comply with
+the algorithm, whose output is cryptographic proofs of
+compliance for all compliant nodes and a collectivelyestablished
+secure random source.
+A deterministic algorithm utilises the shared random
+source to pseudo-randomly assign nodes uniformly to
+consensus sets, simultaneously allocating all nodes to independent
+consensus sets.
+In a malicious environment timing attacks may introduce
+ambiguity, yielding different subjective conclusions.
+Robust against Byzantine faults.
+Emergent.
+What is a proof of faithful execution of an algorithm
+called?
+Verifiable proof of computation.
+Staggered synchronous networks enforce locks. Can I
+encrypt messages?
+Mutually recognised ledgers act as a medium for internetwork
+communication.
+Critique of open anonymous networks.
+IPQ: unitary, classical reversible circuit. 1-to-1 map
+between input and output classical bitstrings, hence a
+permutation and automorphism over the space of evenlength
+bitstrings, Sn ∈ U and unitary.
+Delta minimises over all honest majorities?
+34
+Within which voluntary participation via compliance
+with the distributed protocol yields the mutual reward
+of proofs-of-consensus.
+Delegate with oversight and the option to retreat.
+Vertex automorphisms of Gn,d. All vertex permutations
+within columns What type of graph is it?
+XORing hash identifiers as joint sig of the group. Is
+there an efficient primage algorithm that backs out the
+individual ids from their joint XOR?
+Tradeoffs between amount of batch processing and latency.
+Cryptography via classical reversible circuits. Put one
+side through hash function. Other half encodes preimage?
+Entropy argument for security. Quantum inspired.
+More about the median. How do its bounds work?
+Graphics: Participating in non-participating network
+notes shown by colour edges from the participating nodes
+coming together above unify through a hash function to
+create the variable labels showing the different important
+output random variables vary.
+On timing require supermajority of votes maj+ND of
+which simple majority determines vote. This ensures all
+simple majorities are honest.
+Differences c-set sizes have the same mean but different
+variances, which affects probability of overstepping 50/50
+mark.
+Bitcoin energy value: https://twitter.com/
+caprioleio/status/1767093395124531482?s=61&
+t=-42e2dahvYG0i5nzbeFICg
+If the majority does not exist under variable participation,
+what’s the threshold needed for to be possible for
+it to exist?
+Adding an edge to consensus group C extends C either
+by a symmetric group or a cyclic group depending
+whether the edge is isolated.
+Subsets a form of democratised, distributed process
+scheduling.
+At the most fundamental level, secure shared randomness
+is a fundamental distributed cryptographic primitive,
+upon which arbitrary distributed protocols may be
+built. Here we have focussed on one interpretation of
+what may emerge upon it.
+Consider distributed QIP.
+Reduce gateway latency by trading bulk allocation for
+parallelisation.
+E. Miscellaneous notes
+Upon post-selection the accepted set of participants
+are in unanimous agreement on set membership. Attestations
+for accepted participants.
+Although PoCs execute in synchronous environments
+they are asynchronous objects.
+Nodes evaluate time-compliance based on time-ofreceipt,
+enforcing an effective lower-bound on delta. All
+time-of-receipts (sender excluded) are commit-revealed.
+Consensus-time at each synchronous step of the protocol
+is with respect to the time-of-receipts of messages associated
+with the respective protocol stage: acceptance,
+consensus and compliance.
+Dynamic networks: Dynamic network membership:
+network algorithmically implements policies on network’s
+nodes and parameters. Could be democratic.
+Proof-of-work artificially ties monetary dynamics with
+its gross inefficiency, where transaction cost . . .
+Nodes’ time accuracy is economically self-incentivised
+towards accuracy.
+Deferred proof-of-consensus: provide only proof of random
+subsets but not consensus, which can be made at a
+later point.
+Node announcements are: 1. Bid. 2. Consensus on
+participants (assigns random subsets). 3. Consensus on
+transaction. 4. Consensus on compliance.
+Eliminate timestamping service. Instead maintain local
+lists of message arrival times.
+Eq 5.7: add lexographical ordering when hashing bids
+together into global key.
+Commit-reveal ensures announcements are made
+blindly, independent of those made by other nodes, preventing
+race-time conditions arising whereby dishonest
+nodes inform their own announcements based on those
+of others.
+Nodes operate their own priority queues for incoming
+consensus requests. In a floating market these could be
+prioritised by their offered transaction fee. The transaction
+fee is received exclusively by the delegate node presenting
+the bid to the network. Within the network all
+nodes contribute the same work to performing consensus
+as they receive. Nodes are incentivised to present the
+most profitable PoCs to the network, while transaction
+initiators are incentivised to present bids to the cheapest
+nodes. Under efficient market assumptions this drives the
+network towards uniform transaction fees.
+r can be interpreted as the maximum tolerable dissent
+to maintain epsilon-security, above which the PoC is invalid
+as it defies the signing network’s policies.
+Statements can refer to arbitrary external sources or
+sign PoCs provisioned by other networks.
+Purpose of expanding networks is diversification, which
+reduces r, enabling smaller consensus sets given epsilon.
+Transaction hierarchies: consensus can be delegated to
+lower cost side networks or different network types, such
+as roaming networks, which only execute transactions between
+themselves. From primary ledger transfer credits
+to fully-back the risk exposure of the side-network’s consensus
+policy. Would be less against compromise with
+higher r.
+Nodes adopt retreat strategies in accordance with trust
+hierarchies.
+35
+Multiple nodes under common ownership correlates
+their individual ri. Increases consensus bandwidth.
+Markowitz theory for reducing r.
+How does payout work? Non-compliant nodes burn the
+fee?
+Minimising r is incentivised via reduced consensus set
+size. Consider correlated risk of joining two networks.
+When is it best to join? If the two r’s are perfectly positively
+correlated (i.e the same) the overall r is just r. If
+the two are negatively correlated? Consider Markowitz
+theory for risk diversification theory.
+Any majority of signatures from the consensus set
+on the final compliance vote constitutes a proof-ofconsensus.
+As majorities are not unique neither are
+proofs-of-consensus, but are all equivalent proofs of the
+same consensus.
+O(n) execution time for n nodes, network energy consumption
+scales as O(n2).
+From an arbitrary pool of consensus-signed statements
+a blockchain is a directed linear graph of chronologically
+ordered statements, defined by the function deciding
+which subset of statements form the chain. The
+blockchain function
+fB(statements, time) → chainstatements
+fB(s, t0) ⊆ fB(s, t1)fort1 > t0 (set is non-decreasing,
+non-repudiation)
+As blockchains must retain retrospective integrity, here
+{s} denotes the statement pool for all time.
+This property implies the blockchain function can be
+expressed inductively as deciding which statement (n+1)
+follows the previous one (n).
+As it is possible for multiple satisfying blocks to follow
+a given block this can conversely be expressed as an elimination
+function which prunes a tree graph to a linear one.
+Choosing the earliest satisfying block as the block addition
+rule is the only rule guaranteeing that requirement
+[2] is upheld.
+Conversely this can be considered an elimination procedure,
+Zero-epsilon network allocates the entire network as
+consensus set.
+Think about queue allocation
+Defence against majority takeover: From the perspective
+of an honest player, who knows they are honest themselves,
+allying with nodes that vote in common provides
+a strategic group defence to retreat-and-fork defence.
+* Map trust tree to network partition structure, define
+relationships when ri is node-dependent.
+r cannot be quantified. Map r to tolerated threshold
+ratio of dissent. Define as threshold for retreat-and-fork
+(network partition). As r represents the ratio of adversaries
+for which epsilon-security is defined, it therefore
+represents a publicly-known trigger at which retreat-andfork
+is necessary to maintain epsilon-security, now defined
+relative to a subnet. Adopting this strategy enforces
+epsilon-security in consensus integrity from the perspective
+of nodes within a given alliance. From an external
+perspective, blind to all conspiracies, trusting the majority
+alliance is optimal.
+Not time-stamping messages of non-compliant nodes is
+not considered non-compliance. Are only required at the
+final consensus.
+Quantum randomness: while w and x are independently
+uniformly distributed, collectively they are not as
+they are correlated via the TCF instance.
+epsilon is the security parameter of the network.
+w and x certifiably random, secured by the TCF.
+https://arxiv.org/pdf/1804.00640.pdf
+https://quantum-journal.org/papers/q-2022-09-19-
+807/
+https://arxiv.org/pdf/2112.05156.pdf
+On majority vote by median: No minority act can undermine
+the compliance of others (the majority).
+The integer steps in the synchronous protocol are defined
+relative to a date constant modulo their periodicity.
+Consensus on transaction bundles obeys an algorithmic
+constant of the associated blockchain.
+Consensus is formed on statements, arbitrary decision
+problems fs(·) → {0, 1} whose complexity is bounded by
+the network’s nodes. Could be classical or quantum, BPP
+or BQP, subject to practical constraints.
+Use for outsourced computation. Consensus notarises
+the validity of the output. If bidder is unable to verify
+the computation themselves and must have assurance of
+the integrity of outcomes, consensus notarises integrity
+of outcome.
+Inefficiency due to replication. With N=1 there is no
+duplication of computation although the executing node
+remains randomly assigned. In this trivial case we have
+epsilon=r security.
+A protocol acts on a subset of consensus proofs. A
+blockchain is a protocol that acts on PoCs associated
+with transactions on a specific chain.
+There is no need for a blockchain to ensure the integrity
+of the current state of the ledger. Instead PoCs
+act notarise only the current state of the ledger. No need
+for hash-list to ensure integrity. Transaction history is
+not required to ensure integrity of current state, which is
+inherently epsilon-secure, independent of transaction history.
+A PoC-signed state register is intrinsically epsilonsecure.
+epsilon is dependent on the trigger r at which strategic
+retreat is enforced.
+Distributed computation: Allocate different algorithms
+to different consensus nodes. So long as they can form
+consensus of combined outcomes.
+Mutating state register following an arbitrary update
+rule executed by the signing consensus nodes, an arbitrary
+distributed computation.
+PoC signs the validity of arbitrary decision problems,
+for which one application is smart contracts.
+36
+A blockchain is a subset of PoCs post-selected on packets
+satisfying the blockchain rules, defining a chronologically
+ordered, directed linear graph.
+Abolishing the notion of distinct, independent
+blockchains. Rather mutating state register
+Cross-ledger transactions requires only that both
+recognise PoCs executing them.
+No inherent notion of competing coins across different
+chains. Blockchains are implemented purely based on
+mutual recognition of the blockchain algorithm.
+Sequence of subset reassignments by re-hashing local
+keys. These can all be calculated at once. We re-hash Nc
+times allocating each node to form consensus on Nc independent
+statements. Nodes via their participation contribute
+the same work as a full consensus, matching their
+bid requesting one, making it contribution neutral for all
+nodes.
+The network’s net computational and communications
+resources scale as O(n2) with small constants from a
+practical perspective. Communications: broadcast announcements;
+Computational: O(n2) in the number of
+hashes and O(n) in the number of evaluations of the function
+defining question.
+A valid PoC comprises: * Any majority of nodes from a
+consensus set individually sign: * Which consensus nodes
+were compliant and their announced consensus outcomes
+(proof of execution). * Accepted bids and participant list
+signed by all participating network nodes (proof of random
+subsets).
+Valid PoC is required to release deposit escrow.
+Open networks: single consensus set acts as source of
+truth. Open-bidding
+On evolving ledgers: PoCs can be retrospectively ignored
+if above a certain age. A policy of not recognising
+PoCs above a certain age
+Quantum case: deposit ¿ cost of quantum computation.
+Proof-of-storage has been raised as an alternative. Distributed
+algorithms based on proof of any kind of resource
+consumption is inherently wasteful if consumption
+scales super-linearly with network size. For consensus .
+Must be Consensus algorithm must optimise algorithmic
+efficiency.
+Inter-network atomic operations
+An international racket driven by the greed of algorithmic
+inefficiency whose mobsters’ opulent lifestyle...
+Pseudo-randomness of hash functions. Strong preimage
+resistance.
+Although it is super exponential it behaves itself: num
+bit-strings vs num permutations.
+XII. ERROR CORRECTING CODES (ECC)
+* Classical ECC for distributed redundant file systems.
+Guaranteed symmetric error rates.
+* correct up to t errors in each codeword: t = ⌊(d −
+1)/2⌋.
+* Maximum Distance Separable Codes:
+* MDS codes have the highest distance possible of all
+codes.
+* Reed–Solomon codes:
+* with t = n − k check symbols can locate and correct
+up to ⌊t/2⌋ = (n − k)/2 unlocated errors.
+* [n, k, n − k + 1]
+* The Reed–Solomon code is optimal, maximum value
+possible for a linear code of size (n, k).
+* Maximum distance separable (MDS) code.
+* (Raptor is eg of) Systematic codes: are ECC codes in
+which input data is embedded into encoded data, which
+comprises input data and parity check data.
+* LDPC codes: https://en.wikipedia.org/wiki/
+Low-density_parity-check_code
+* Singleton bound: https://en.wikipedia.org/
+wiki/Singleton_bound
+* d ≤ n − k + 1
+* 2t + s < d
+* https://en.wikipedia.org/wiki/Hamming_bound
+Raptor codes are a highly efficient class of fountain
+codes:
+• For given integer k and ε > 0, any subset of k(1 + ε)
+output symbols affords recovery of the initial k
+symbols with high probability.
+• Encoding requires O(log(1/ε)) operations per symbol,
+and decoding requires O(k log(1/ε)) operations.
+• With overhead ε · k the failure rate is 1/kc for constant
+c > 1, where c is independent of ε.
+XIII. TOPOLOGY
+There are two distinct topologies, the evolution of networks
+and the evolution of which ones ledgers recognise.
+Ledger’s evolve as a function of network topology. Their
+intersection is a point of consideration.
+A ledger may be a function of PoCs contributed by
+different consensus pools. At the protocol level a ledger
+is defined by arbitrary subsets of PoCs satisfying its rules.
+XIV. STRUCTURE OF CONSENSUS SPACE
+Elements of the powerset of S who cardinality is κ ≥
+majority.
+Full consensus: where all nodes bid one transaction and
+participate in NC PoCs. Equality in the receipt of and
+contribution towards consensus. Allocation requires NC
+independent random partitions.
+37
+Space of network nodes maps to multiset of consensus
+space with multiplicity NC on all elements. Multiset
+maps back to set of network nodes.
+XV. CONSENSUS HIERARCHIES
+XVI. CONSENSUS TIME
+DEFINITIONS
+* Define consensus time of a message broadcast by
+node i relative to a set of nodes S,
+ConsensusTime(i, S) = median({ti,j}j∈S), (16.1)
+where ti,j is the reported time-of-receipt of message i
+by node j, and {ti,j}j∈S is the set of reported times-ofreceipt
+of message i by elements of S.
+* Use notation,
+⃗t
+i,S = {ti,j}j∈S,
+˜ti,S = median(⃗t
+i,S). (16.2)
+* For any majority subset,
+S+ ⊆ S, |S+| >
+|S|
+2
+, (16.3)
+we have,
+min(⃗t
+i,S+) ≤ ConsensusTime(i, S) ≤ min(⃗t
+i,S+).
+(16.4)
+Hence, the consensus-time of a set is bounded by any
+constituent majority.
+* A majority of nodes reporting identical times-ofreceipt,
+ti,j = ti,k ∀ j, k ∈ S+, (16.5)
+forces convergence of consensus-time,
+ConsensusTime(i, S) = ti,S+, (16.6)
+invariant under times reported by the minority, ⃗t
+i,S−.
+PROTOCOL:
+1. All nodes i ∈ S report their times-of-receipt of a
+given message,
+B ← ti, (16.7)
+and initialise their set of recognised compliant
+nodes as those whose timestamps subjectively arrived
+on time,
+S(0)
+i = {j ∈ S | ReceivedOnTimei(tj→i)}. (16.8)
+2. Nodes i record the arrival times of all timestamps
+announced by j they recognise as compliant (j ∈
+Si),
+B → {tj→i}j∈Si . (16.9)
+and update their set of recognised compliant nodes
+accordingly,
+S(n)
+i = {j ∈ S(n−1)
+i | ReceivedOnTimei(tj→i)}.
+(16.10)
+With increasing n, subjective subsets of compliant
+nodes are non-expanding,
+S(n)
+j ⊆ S(n−1)
+j . (16.11)
+3. Nodes announce the set of received timestamps
+they deem compliant (for the nth round),
+T (n)
+i (S(n)
+i ) = {t(n)
+j→i}
+j∈S(n)
+i
+,
+B ← T (n)
+i (S(n)
+i ). (16.12)
+The median of T (n)
+i (S(n)
+i ) is node i’s subjective
+consensus-time.
+4. Nodes i and j mutually recognise the compliance
+of the set Si ∩ Sj . Node i interprets the relative
+consensus-time implied by j via their mutually
+recognised nodes,
+T (n)
+j→i = T (n)
+j (S(n)
+i ∩ S(n)
+j ). (16.13)
+5. On a pairwise basis relative consensus-times are unambiguous.
+6. Nodes update their sets of timestamps to their new
+pairwise mutually recognised relative consensustimes,
+t(n)
+i = medianj(T (n)
+j→i(Si ∩ Sj)) (16.14)
+7. (Repeat to 1): All nodes announce their updated
+timestampe,
+B ← t(n)
+i . (16.15)
+8. When an majority of nodes j report the same subjective
+understandings of consensus-time of i, all
+honest nodes necessarily converge (Eq. (16.6)).
+9. Failure to converge arises when different nodes have
+different subjective interpretations of consensustime,
+which can only occur via minority timing manipulation.
+This is only possible if when,
+Sj ̸= Sk, j, k ∈ SH. (16.16)
+38
+10. If a majority of reported updated times (i.e subjective
+consensus-times) are identical convergence has
+been reached: TERMINATE.
+* ??? TODO
+To enforce synchronisation of the protocol compliance
+requires nodes’ broadcast messages to satisfy timing constraints
+under majority vote. To establish majority vote
+outcomes on the timing of messages we introduce consensus
+time, given by the median of the reported times
+of receipt of messages (Alg. 11).
+Algorithm 11: Consensus time of a broadcast message is
+given by the median of the times of receipt reported by nodes.
+function ConsensusTime(C, message) → R
+times ← {TimeOfReceipt(i, message)}i∈C
+return Median(times)
+Consensus time exhibits the property that if for any
+majority of consensus nodes,
+|ti − ConsensusTime(C, message)| ≤ δ, (16.17)
+no reported ti for the remaining minority can shift consensus
+time by more than δ, making consensus time
+robust against minority manipulation. Consensus time
+may therefore be utilised as an implied majority vote on
+nodes’ timing compliance,
+MajorityVote(C, Compliant(message)). (16.18)
+Let the worst-case network latencies be,
+τmax = max
+i,j∈N
+(τi,j), (16.19)
+where τi,j is the matrix of point-to-point latencies between
+nodes i and j. A message broadcast at time tB will
+be received by all network nodes by at latest tB + τmax.
+By majority vote, the latest time at which a message
+could have been broadcast is,
+tB ≤ ConsensusTime(C, message) − τmax. (16.20)
+Ensuring majority votes on consensus time are welldefined
+requires,
+δ ≥
+τmax
+2
+. (16.21)
+The possible values for the median of a set of numbers
+⃗t
+= {ti}i is discretised, limited to being one of the values
+ti or the mean of two nearest ones, (ti + ti+1)/2, where
+ti+1 ≥ ti are ordered. If ⃗t
+are the times reported by a
+majority, consensus-time is similarly constrained.
+Considering a set of parties with maximal dishonest
+minority, with |NH| honest nodes and |ND| = |NH| − 1
+dishonest nodes, such that |N | = 2 · |NH| − 1. Then we
+have,
+* Let Sj,k
+* Consider an honest majority of nodes with different
+subjective
+* Under an honest-majority assumption, if honest
+nodes
+-
+* For a network with honest majority
+min(NH) ≤ ConsensusTime(NH) ≤ max(NH).
+(16.22)
+Including dishonest timestamps the inequality remains
+unchanged,
+min(NH) ≤ ConsensusTime(N) ≤ max(NH). (16.23)
+Given,
+max(NH) − min(NH) ≤ τmax. (16.24)
+If all honest nodes NH report the same time their subjective
+consensus times converge (δ → 0) and cannot be
+manipulated by any minority tactic.
+Consensus time may be subjective when nodes include
+timestamps from different sets of nodes, which may arise
+when dishonest nodes manipulate message timing such
+that their arrival times yield ambiguous inclusion.
+ConsensusTime({C}i) ̸= ConsensusTime({C}j),
+(16.25)
+for different subjective sets of timestamps to include, {C}i
+and {C}j .
+1. Consensus-time convergence
+All nodes i broadcast time-of-receipt of a message, t(0)
+i .
+Messages must be received within cutoff time T0. Assume
+all honest nodes time-of-receipt are within cutoff. Dishonest
+nodes may manipulate their transmission timing
+to create subjective ambiguity in which timestamps are
+acknowledged by different nodes.
+The consensus-time based only on honest nodes is
+bounded by,
+tH = ConsensusTime(NH),
+min(NH) ≤ tH ≤ max(NH). (16.26)
+For all nodes it is similarly bounded under honest majority,
+|NH| > |ND|,
+tN = ConsensusTime(NH ∪ ND),
+min(NH) ≤ tN ≤ max(NH) (16.27)
+Following the initial announcements of recorded arrival
+times, t(0)
+i , all nodes update their times to their subjectively
+observed consensus-times,
+t(1)
+i = ConsensusTime(N(i)), (16.28)
+39
+where N(i) is the set of times observed by node i,
+which necessarily includes the reported times of all honest
+nodes, dictating common upper and lower bounds across
+all honest subjective t(k)
+i .
+Updated times are announced to the network and employed
+for the subsequent round. The local update rule
+is recursively defined,
+t(k)
+i = ConsensusTime(N(k−1)(i)). (16.29)
+In the absence of any dishonest nodes, all subjective
+t(1)
+i will be equivalent and consensus-time convergence is
+achieved.
+With only honest nodes, all t(k)
+i converge after one
+round. Dishonest participants inhibit convergence by creating
+discrepancy between subjective consensus-times,
+but nonetheless remain bounded between the maximum
+and minimum of honest nodes. This creates a deadlock
+scenario where convergence is prevented.
+We achieve convergence in consensus-time when subjective
+consensus-times are stable.

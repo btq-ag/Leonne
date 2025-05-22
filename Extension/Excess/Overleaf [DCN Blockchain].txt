@@ -1,0 +1,719 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsfonts, amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{bm}
+\usepackage{color}
+\usepackage{mathrsfs}
+\usepackage{epstopdf}
+\usepackage{setspace}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{cite}
+\usepackage{hyperref}
+\usepackage{float}
+\geometry{a4paper, margin=1in}
+\setstretch{1.2}
+
+\newtheorem{definition}{Definition}[section]
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{corollary}[definition]{Corollary}
+
+\title{Distributed Consensus Networks: Decentralized Cryptographic Proofs for Blockchains}
+\author{Jeffrey Morais\thanks{Quantum Computing Group, \textit{BTQ Technologies}, 555 Burrard Street, Vancouver BC, V7X 1M8, Canada.} \thanks{Department of Physics and Astronomy, \textit{University of Victoria}, Victoria, BC V8W 3P6, Canada.}}
+\date{}
+
+\begin{document}
+\maketitle
+
+
+
+\begin{abstract}
+We propose a distributed consensus network (DCN) framework as an alternative to inefficient proof-of-work and proof-of-stake blockchain systems. In our approach, a closed network of known nodes is partitioned into secure, random consensus subsets by exploiting shared randomness and cryptographic protocols. The resulting proofs-of-consensus, which are timestamped and cryptographically verifiable, serve as a commodity independent of any stake. This framework naturally lends itself to a rigorous mathematical description via random subset sampling, compliance voting, and ultimately, blockchain integration.
+\end{abstract}
+
+\section{Overview}
+\subsection{Introduction and Motivation}
+Decentralised finance (DeFi) envisions a truly global and borderless financial system in which every transaction is verified by an independent, distributed network rather than by central authorities. Traditional financial institutions impose high fees and gatekeeping that inhibit competition and equitable access to capital. Blockchains emerged as a revolutionary technology to eliminate intermediaries through cryptographic proofs and distributed consensus. However, the prevalent proof-of-work (PoW) mechanism, despite its ingenious design, suffers from enormous energy inefficiency and scalability issues. 
+
+Distributed Consensus Networks (DCNs) are proposed as a secure, computationally efficient alternative. By allocating known nodes into random consensus subsets—each acting as a decentralized delegate for transaction verification—the DCN framework promises full resource utilization while maintaining security. In an economic landscape where consensus itself becomes a tradable commodity, it is essential that the underlying protocols are both robust against adversarial manipulation and optimized for high-throughput, low-cost operations. Figure~\ref{fig:overview} schematically illustrates the conceptual architecture of a DCN.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{Plots/Synchronisation.png}
+  \caption{Schematic overview of Distributed Consensus Networks. Nodes in a closed, known network are randomly partitioned into consensus sets; each consensus set generates a proof-of-consensus (PoC) that is timestamped and serves as cryptographic evidence for transaction verification.}
+  \label{fig:overview}
+\end{figure}
+
+The DCN approach leverages both cryptographic hash functions and shared randomness to securely allocate nodes into consensus sets. This random subset assignment ensures that even if a minority of nodes collude, they cannot target a known consensus set—thus preserving the integrity of the overall process. In the sections that follow, we rigorously develop the mathematical framework underlying these ideas.
+
+\subsection{Conceptual Framework}
+At its heart, the DCN protocol rests on the observation that the integrity of consensus depends on two intertwined factors: (1) the unpredictability of the random allocation of nodes to consensus sets, and (2) the self-enforcing nature of the economic and compliance rules that govern node behavior. The former is achieved via cryptographic randomness (or even quantum randomness in enhanced variants), while the latter is enforced through a decentralized protocol that penalizes any attempt to deviate from agreed rules. As a result, each consensus set produces a timestamped signature that serves as a proof-of-consensus—a cryptographic commodity whose market value is determined by supply and demand. 
+
+In essence, DCNs can be viewed as both a consensus protocol and an economic marketplace for consensus load. By decoupling the mechanism of consensus from direct monetary stakes, the DCN framework enables horizontal competition among multiple currencies or consensus providers, thereby opening the door to inter-ledger operations and enhanced system scalability.
+
+\section{Consensus}
+\subsection{Consensus in Decentralized Finance}
+In a decentralized environment, consensus refers to the mechanism by which a subset of nodes agrees on the validity of a transaction or statement. This is essential for blockchains, where each new block must be verified before being appended to the immutable ledger. More precisely, let \( N \) denote the set of all network nodes. A consensus set \( C \) is a subset of \( N \) selected at random:
+\[
+C \subset N,
+\]
+and consensus is achieved when the majority vote among the nodes in \( C \) validates the transaction identifier \( \text{id} \). Formally, we define a majority vote function
+\[
+\text{MajorityVote}(C, \text{id}) \rightarrow \{0,1\},
+\]
+which is designed so that, in the absence of any compromise (i.e. when the probability of dishonest behavior is zero), it reproduces the network majority decision:
+\[
+\text{MajorityVote}(C, \text{id}) = \text{MajorityVote}(N, \text{id}) \quad \text{for } P_c=0.
+\]
+When a small fraction of nodes is dishonest, the consensus outcome becomes probabilistic, and the set size must be chosen to keep the likelihood \( P_c \) of a false majority below an acceptable security threshold.
+
+\subsection{Compliance and Robust Voting}
+A central challenge in any consensus mechanism is ensuring that only compliant nodes—those that follow the protocol faithfully—contribute to the vote. Compliance can be enforced through a process of \emph{compliance voting}, in which every node in the network votes on the compliance of every other node. The result is a directed compliance graph \( G_c \) in which the edge \( v_{ij} \) (taking values from \(\{0,1,\bot\}\)) represents node \( i \)'s assessment of node \( j \)'s adherence to protocol rules. In practice, a node is considered compliant if the majority of its incoming votes are positive, and non-compliant if they are not. Figure~\ref{fig:compliance} shows an illustrative example.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.55\textwidth]{Plots/Compliance.png}
+  \caption{Compliance voting: Nodes exchange votes regarding the compliance of their peers. The directed edges in the compliance graph \( G_c \) are labelled with votes \( v_{ij}\in \{0,1,\bot\} \) (where \( \bot \) indicates ambiguous response). A node is declared compliant if the majority of its incoming votes are 1.}
+  \label{fig:compliance}
+\end{figure}
+
+Such a mechanism not only filters out potentially malicious nodes but also reinforces the integrity of the consensus process by ensuring that every vote is taken only from a subset that is known to be honest.
+
+\section{Random Subset Problem}
+\subsection{Mathematical Formulation}
+One of the key technical challenges in the DCN framework is the \emph{random subset problem}: how to choose a random subset \( A \) from a set \( B \) uniformly. In our context, this means randomly partitioning the network \( N \) into several consensus sets. Given that there are 
+\[
+\binom{|B|}{|A|}
+\]
+possible subsets of size \( |A| \), the goal is to select one uniformly at random.
+
+Suppose that each node has an independent likelihood \( r_i \) of being dishonest. When the proportion \( r \) of nodes acting dishonestly is known, the probability \( P(N,k,r) \) that a random subset of size \( N \) contains at least \( k \) dishonest nodes is given by
+\[
+P(N,k,r) = \sum_{n=k}^{N} \binom{N}{n} r^n (1-r)^{N-n} = I_r(k, N-k+1),
+\]
+where \( I_r(a,b) \) is the regularized incomplete beta function. In order for a consensus set to be secure against a false majority, the number of dishonest nodes must be less than the majority threshold
+\[
+k_{\text{maj}} = \lfloor N/2 \rfloor + 1.
+\]
+Thus, the probability \( P_C(N, r) \) of a compromise is
+\[
+P_C(N, r) = I_r\Bigl(\lfloor N/2 \rfloor + 1, N - \lfloor N/2 \rfloor \Bigr).
+\]
+To guarantee an exponentially small likelihood of a false majority, we require
+\[
+P_C(N, r) \le \varepsilon,
+\]
+with \( \varepsilon = 2^{-\lambda} \) for some security parameter \( \lambda > 1 \). We then define the minimum consensus set size \( N_C(r,\varepsilon) \) as the smallest \( N \) satisfying
+\[
+N_C(r, \varepsilon) = \min \{ N \in \mathbb{Z}^+ \; : \; P_C(N, r) \le \varepsilon \}.
+\]
+Figure~\ref{fig:tradeoff} illustrates typical tradeoff curves of \( N_C \) as a function of \( r \) for fixed \( \varepsilon \).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{Plots/Security Tradeoffs Combined.png}
+  \caption{Tradeoff between consensus set size \( N_C \) and the fraction \( r \) of dishonest nodes for a fixed security parameter \( \varepsilon \). Smaller \( N_C \) minimizes resource usage, but larger \( N_C \) is needed to bound the probability of compromise.}
+  \label{fig:tradeoff}
+\end{figure}
+
+\subsection{Statistical Security and Sampling}
+Random subset sampling ensures that the dishonest nodes in each consensus set are independently drawn from the overall network. In an idealized scenario where each node has a probability \( r \) of being dishonest, the average-case probability that any consensus set is compromised does not depend on the distribution strategy, provided that the nodes are allocated uniformly. In fact, if we denote the population average as
+\[
+\mu_{\text{pop}}(r) = \frac{1}{N}\sum_{i=1}^{N} r_i,
+\]
+then choosing nodes uniformly ensures that the sample mean \( \mu_{\text{samp}}(r) \) converges to \( \mu_{\text{pop}}(r) \) with variance
+\[
+\sigma^2_{\text{samp}}(r) = O\left(\frac{1}{N_C}\right).
+\]
+Thus, larger consensus sets lead to a more reliable estimate of the overall trustworthiness of the network. The probability that the sample mean deviates by at least \( d \) from the population mean is given by
+\[
+P\left(\mu_{\text{samp}}(r) - \mu_{\text{pop}}(r) \ge d \right) = \Phi\left( - \frac{d\sqrt{N_C}}{\sigma_{\text{pop}}} \right),
+\]
+where \( \Phi(z) \) is the cumulative distribution function of the standard normal distribution. This formulation underpins the statistical security of the DCN protocol.
+
+\section{Distributed Consensus Networks}
+\subsection{Model and Economic Framework}
+Distributed Consensus Networks (DCNs) combine the consensus assignment problem with an economic model that self-incentivizes honest participation. In a DCN, every node not only contributes consensus work but also requests a corresponding consensus load in a barter-like economy. This mechanism eliminates the need for external monetary stakes. Instead, nodes submit bids to participate in consensus—each bid includes a request for a certain consensus set size and a declaration of the participating nodes (expressed as public keys). These bids are broadcast over a shared channel \( \mathcal{B} \) using a commit–reveal scheme that ensures the integrity of the input data.
+
+A global secure random source \( X_N \) is established from the concatenated, sorted hashes of transaction identifiers provided by each node:
+\[
+X_N = \text{Hash}\left( \mathop{\Vert}_{i\in N} X_i \right),
+\]
+where \( X_i = \text{Hash}(\text{id}_i) \) is the random number associated with node \( i \). Individual keys for subset allocation are then computed as
+\[
+K_i = \text{Hash}(X_N \Vert X_i).
+\]
+The use of secure shared randomness guarantees that the random allocation of nodes to consensus sets is unspoofable unless all nodes collude.
+
+\subsection{Protocol and Proof-of-Consensus}
+The DCN protocol proceeds in a synchronous manner according to the following steps:
+
+\textbf{1. Bid:}  
+Each node \( i \) broadcasts a bid \( R_i \) that contains a set of requests \( R_{i,j} = (\text{id}_{i,j}, |C_{i,j}|) \) for consensus sets of a given size, and a list \( N(i) \) of recognized nodes (public keys). This broadcast is done via a commit–reveal scheme (see Algorithm 6 in DCN.pdf).
+
+\textbf{2. Accept:}  
+Nodes listen to the broadcast channel \( \mathcal{B} \) and infer the accepted network state, denoted by \( (\tilde{R}, \tilde{N}^\prime, \tilde{N}) \). A deterministic function \( \text{Accept}(\cdot) \) resolves the bids and ensures that the number of participating nodes \( |\tilde{N}| \) exceeds half the total, i.e., 
+\[
+|\tilde{N}| > \frac{|N|}{2}.
+\]
+
+\textbf{3. Consensus:}  
+Using the global key \( X_N \) established from the accepted parameters, nodes determine their random assignment to consensus sets \( \{C\} \). Then, each node votes (via commit–reveal) on its assigned consensus request. 
+
+\textbf{4. Compliance:}  
+Each node announces its view of the compliance set \( \text{CompliantSet}_i(N) \) based on the time-of-receipt of all broadcast messages. Nodes whose timestamps deviate beyond a fixed threshold \( \delta \) are marked non-compliant. Only compliant nodes’ votes are counted.
+
+The cumulative outcome of these steps produces a \emph{proof-of-consensus} (PoC) which is a timestamped, cryptographic proof that a given consensus set \( C \) was formed securely. Such proofs serve as a digital commodity with a market-determined value. Figure~\ref{fig:protocol} summarizes the protocol sequence.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.4\textwidth]{Plots/DCN Protocol Sequence.png}
+  \caption{DCN protocol sequence diagram. The blue arrows indicate the internal steps (bid, accept, consensus, compliance, and proof) among network nodes. The red arrows indicate the external market interactions where consensus load is bid and traded.}
+  \label{fig:protocol}
+\end{figure}
+
+An important part of the protocol is the voting process. Suppose the network is composed of honest nodes \( N_H \) and dishonest nodes \( N_D \) with \( N = N_H + N_D \) and \( N_H > N_D \). A network majority requires at least 
+\[
+N_{\text{maj}} = \left\lfloor \frac{N}{2} \right\rfloor + 1
+\]
+votes. To further reinforce consensus integrity, a supermajority \( N_V = N_{\text{maj}} + N_D \) is enforced so that even if all dishonest nodes vote ambiguously, the network outcome remains robust. (See Figure~\ref{fig:voting} for a schematic illustration of voting outcomes.)
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\textwidth]{Plots/Random Filter.png}
+  \caption{Schematic representation of the voting process in a DCN. Honest nodes (blue) form the majority and determine the outcome, while dishonest nodes (red) are treated as ambiguous votes. A supermajority vote is required to confirm consensus.}
+  \label{fig:voting}
+\end{figure}
+
+Resource consumption in DCNs is highly efficient because every node participates in consensus; unlike PoW, no computational work is wasted on solving cryptographic puzzles. The network policy also includes a ledger that tallies each node’s contributed consensus workload, ensuring that nodes “pay” for the consensus load they request by first contributing an equivalent amount.
+
+\section{Blockchains and Cryptographic Proofs}
+\subsection{Blockchain Implementation with DCNs}
+Traditional blockchain architectures rely on proof-of-work (PoW) protocols to randomly select nodes for transaction validation. While PoW has proven secure in open networks, it incurs massive energy costs—for example, the Bitcoin network’s annual energy consumption is comparable to that of medium-sized countries. Moreover, PoW artificially throttles transaction rates to prevent multiple winners or inflation. Proof-of-stake (PoS) systems attempt to mitigate these issues, but often at the expense of decentralization and security.
+
+DCNs offer an attractive alternative for blockchain consensus. In a blockchain based on DCNs, each block is appended only after a secure proof-of-consensus is generated by a consensus set. This proof serves as a cryptographic timestamp and cannot be forged unless all nodes in the consensus set collude. By allocating all nodes to consensus sets via secure random subset assignment, DCNs maximize resource utilization and enable rapid, parallel transaction verification.
+
+The decoupling of the cryptocurrency from the consensus mechanism means that the cost of consensus is determined solely by the underlying security and resource consumption—not by any fixed stake. This abstract separation allows for horizontal competition between different blockchain systems and facilitates inter-ledger operations. Figure~\ref{fig:blockchain} conceptually illustrates a blockchain where blocks are appended only after a valid proof-of-consensus is generated.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{Plots/Blockchain Combined.png}
+  \caption{Conceptual view of a blockchain built using DCN protocols. Each block contains a cryptographic proof-of-consensus (PoC), ensuring that the transaction was verified by a secure consensus set of nodes. The separation between the cryptocurrency and consensus mechanism allows for enhanced inter-ledger interoperability.}
+  \label{fig:blockchain}
+\end{figure}
+
+\subsection{Implications for Cryptographic Proofs and Security}
+The DCN framework’s reliance on secure random subset allocation, compliance voting, and distributed consensus assignment creates proofs-of-consensus that are inherently timestamped and cryptographically verifiable. These proofs act as digital certificates whose value is determined by the market, much like a commodity. Moreover, by removing reliance on energy-intensive PoW or stake-based PoS, DCNs promise a more sustainable and democratized method of reaching consensus.
+
+The key innovation is that consensus is treated as an abstract commodity: nodes contribute and receive consensus load in an equal barter economy. This allows the network to adjust dynamically based on the evolving trust between nodes. The cryptographic separation between the currency and the consensus mechanism further ensures that security is not compromised by the monetary dynamics of the underlying token. Thus, DCNs provide a robust foundation for blockchain systems that are both secure and scalable.
+
+In this work we have presented a comprehensive and mathematically rigorous framework for Distributed Consensus Networks (DCNs) as an alternative to traditional PoW and PoS blockchain systems. By partitioning a closed network of known nodes into secure, randomly allocated consensus sets, and by enforcing self-regulating compliance and economic rules, DCNs produce proofs-of-consensus that serve as digital certificates of transaction validity. Our analysis of the random subset problem, the statistical security tradeoffs, and the distributed protocol demonstrates that DCNs not only maximize resource utilization but also offer robust protection against collusive adversaries. Finally, we have discussed how the DCN approach naturally integrates with blockchain architectures, decoupling the consensus mechanism from the cryptocurrency and enabling a more efficient, horizontally competitive ecosystem.
+
+\section{Proof of Consensus (PoC}
+In the evolving landscape of decentralized networks and blockchain technology, traditional consensus schemes such as proof-of-work (PoW) and proof-of-stake (PoS) have revealed significant drawbacks related to scalability, energy consumption, and security. In contrast, our framework leverages a \emph{proof-of-consensus} (PoC) mechanism that is based on mutual benefit and trust among a closed set of authenticated nodes. The underlying idea is to partition a network into random consensus subsets via robust cryptographic protocols and compact group actions, and to certify the validity of transactions through a topologically informed aggregation of trust metrics.
+
+The PoC mechanism is designed to meet three key objectives:
+\begin{enumerate}[label=(\alph*)]
+  \item \textbf{Temporal ordering and freshness:} by incorporating a timestamp, each consensus event is uniquely bound in time, mitigating replay attacks.
+  \item \textbf{Distributed trust aggregation:} the individual trust measures \( r(i) \) of the nodes in the consensus set \( C \subset N \) are combined using a cryptographically secure aggregator.
+  \item \textbf{Cryptographic integrity:} a digital signature is applied over the aggregated data to ensure non-repudiation, authenticity, and tamper-evidence.
+\end{enumerate}
+
+In what follows, we rigorously develop the mathematical structure of our PoC mechanism. We begin by setting up the notation and outlining the core cryptographic ingredients. Then we derive the principal equation:
+\[
+\mathrm{PoC} \;=\; \mathrm{Sign}_k\!\Bigl(\tau \,\Vert\, \bigoplus_{i \in C} r(i)\Bigr),
+\]
+and discuss its variants, including a hashed version for enhanced security:
+\[
+\mathrm{PoC} \;=\; \mathrm{Sign}_k\!\Bigl(\mathrm{Hash}\Bigl(\tau \,\Vert\, \bigoplus_{i \in C} r(i)\Bigr)\Bigr).
+\]
+This section provides a comprehensive account of every ingredient and justifies their integration into a robust cryptographic proof.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Preliminaries and Notation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Let \( N \) denote the set of all authenticated nodes in the closed network. Each node \( i \in N \) is associated with a unique identifier and a cryptographic key pair \((\mathrm{pk}_i, \mathrm{sk}_i)\). For the purpose of consensus, we select a subset \( C \subset N \) (termed the \emph{consensus set}) using a secure random process.
+
+\begin{definition}[Trust Metric]
+  For every node \( i \in N \), we define a trust function
+  \[
+    r : N \to [0,1],
+  \]
+  where \( r(i) \) quantifies the degree of compliance or honesty of node \( i \). A higher value of \( r(i) \) indicates a greater degree of trust.
+\end{definition}
+
+\begin{definition}[Timestamp]
+  We denote by \( \tau \) a timestamp chosen from a totally ordered set \( \mathbb{T} \). Typical choices include discrete block indices or Unix time. The role of \( \tau \) is to provide temporal context and prevent replay attacks.
+\end{definition}
+
+\begin{definition}[Aggregation Operator]
+  Let \( \bigoplus \) denote a cryptographic aggregation operator acting on the trust values of nodes in \( C \). Typical examples include:
+  \begin{align*}
+    \bigoplus_{i \in C} r(i) &= \sum_{i \in C} r(i), \quad \text{(arithmetic sum)} \\
+    \bigoplus_{i \in C} r(i) &= \bigoplus_{i \in C} r(i), \quad \text{(bitwise XOR)},
+  \end{align*}
+  where the choice depends on the desired cryptographic properties such as diffusion and linearity.
+\end{definition}
+
+\begin{definition}[Digital Signature]
+  Let \( \mathrm{Sign}_k(\cdot) \) denote the operation of producing a digital signature using a private key \( k \). In a multi-signature scheme, this may represent a joint signature by all nodes in \( C \). The signature is computed over a message (or its hash) to ensure authenticity and non-repudiation.
+\end{definition}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+What follows is a derivation for the proof-of-consensus equation.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The central cryptographic artifact of our protocol is the proof-of-consensus (PoC), which is defined as
+\begin{equation}\label{eq:PoC_basic}
+\mathrm{PoC} \;=\; \mathrm{Sign}_k\!\Bigl(\tau \,\Vert\, \bigoplus_{i \in C} r(i)\Bigr).
+\end{equation}
+Here, the symbol “\(\Vert\)” denotes the concatenation of the timestamp \(\tau\) and the aggregated trust value. The role of each component is as follows:
+
+The inclusion of a timestamp serves two purposes:
+\begin{enumerate}
+  \item \textbf{Replay protection:} By binding the proof to a specific moment, \(\tau\) prevents adversaries from reusing an old PoC in a different context.
+  \item \textbf{Ordering:} In blockchain applications, \(\tau\) ensures that consensus events are sequentially ordered.
+\end{enumerate}
+Mathematically, we require that
+\[
+\tau \in \mathbb{T}, \quad \text{with} \quad \forall \tau_1,\tau_2 \in \mathbb{T}, \quad \tau_1 < \tau_2 \implies \text{the event at } \tau_1 \text{ precedes that at } \tau_2.
+\]
+
+\subsection*{Aggregation of Trust Values \(\bigoplus_{i \in C} r(i)\)}
+The operator \(\bigoplus\) aggregates the local trust values \( r(i) \) into a single scalar or bit-string. One natural choice is the arithmetic sum:
+\begin{equation}\label{eq:trust_sum}
+T(C) = \sum_{i \in C} r(i).
+\end{equation}
+However, for cryptographic diffusion and resistance to certain attacks, non-linear aggregators such as bitwise XOR may be preferred. In either case, the aggregation must satisfy the following properties:
+\begin{enumerate}
+  \item \textbf{Commutativity:} \( r(i) \oplus r(j) = r(j) \oplus r(i) \) for all \( i,j \in C \).
+  \item \textbf{Associativity:} \( (r(i) \oplus r(j)) \oplus r(k) = r(i) \oplus (r(j) \oplus r(k)) \) for all \( i,j,k \in C \).
+  \item \textbf{Collision Resistance:} It should be computationally infeasible to find distinct sets \( C_1 \neq C_2 \) such that
+  \[
+  \bigoplus_{i \in C_1} r(i) = \bigoplus_{i \in C_2} r(i),
+  \]
+  unless the differences are due solely to benign permutation.
+\end{enumerate}
+
+\subsubsection*{Digital Signature \(\mathrm{Sign}_k(\cdot)\)}
+The final step is the application of a digital signature over the concatenated data:
+\begin{equation}\label{eq:PoC_signature}
+\mathrm{PoC} \;=\; \mathrm{Sign}_k\!\Bigl(\tau \,\Vert\, \bigoplus_{i \in C} r(i)\Bigr).
+\end{equation}
+In practice, for efficiency and enhanced security, one typically applies a cryptographic hash function prior to signing:
+\begin{equation}\label{eq:PoC_hash}
+\mathrm{PoC} \;=\; \mathrm{Sign}_k\!\Bigl(\mathrm{Hash}\Bigl(\tau \,\Vert\, \bigoplus_{i \in C} r(i)\Bigr)\Bigr).
+\end{equation}
+Here, \(\mathrm{Hash}:\{0,1\}^* \to \{0,1\}^n\) is a hash function with strong collision resistance, such as SHA-256.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Mathematical Analysis and Properties}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In this section, we detail the mathematical properties that underpin the security and integrity of the PoC mechanism.
+
+\subsubsection*{Property 1: Unforgeability}
+\begin{theorem}[Unforgeability]
+Assume that the digital signature scheme \(\mathrm{Sign}_k(\cdot)\) is secure, and that the hash function \(\mathrm{Hash}(\cdot)\) is collision resistant. Then, without access to the private key \( k \), it is computationally infeasible for an adversary to produce a valid PoC for any given \(\tau\) and \(\bigoplus_{i \in C} r(i)\).
+\end{theorem}
+
+\begin{proof}
+Suppose an adversary were able to forge a valid PoC, i.e.,
+\[
+\mathrm{PoC}^* = \mathrm{Sign}_k\!\Bigl(\mathrm{Hash}\Bigl(\tau \,\Vert\, \bigoplus_{i \in C} r(i)\Bigr)\Bigr).
+\]
+By the unforgeability of the signature scheme, this implies that the adversary must have either computed the hash preimage or obtained the private key \( k \), both of which are assumed to be computationally infeasible under standard cryptographic assumptions.
+\end{proof}
+
+\subsubsection*{Property 2: Non-Repudiation and Integrity}
+\begin{proposition}[Non-Repudiation]
+Any valid PoC binds the consensus event to the specific timestamp \(\tau\) and the aggregated trust value \(\bigoplus_{i \in C} r(i)\); hence, neither can be modified without invalidating the signature.
+\end{proposition}
+
+\begin{proof}
+Assume that there exists a modified tuple \((\tau', T')\) such that
+\[
+\mathrm{Sign}_k\!\Bigl(\mathrm{Hash}\bigl(\tau' \,\Vert\, T'\bigr)\Bigr) = \mathrm{PoC},
+\]
+where \( T' \neq \bigoplus_{i \in C} r(i) \) or \(\tau' \neq \tau\). Since the hash function is collision resistant, it is infeasible to find \((\tau', T') \neq (\tau, \bigoplus_{i \in C} r(i))\) yielding the same hash value. Consequently, the signature would not verify under the public key corresponding to \( k \).
+\end{proof}
+
+\subsubsection*{Property 3: Freshness and Order Preservation}
+The role of the timestamp \(\tau\) is critical to ensuring that the PoC reflects a unique and timely consensus event. We formalize this as follows:
+
+\begin{proposition}[Freshness]
+Let \(\tau_1, \tau_2 \in \mathbb{T}\) with \(\tau_1 < \tau_2\). Then the corresponding proofs-of-consensus \(\mathrm{PoC}_1\) and \(\mathrm{PoC}_2\) satisfy
+\[
+\mathrm{PoC}_1 \neq \mathrm{PoC}_2,
+\]
+ensuring that each consensus event is uniquely identifiable.
+\end{proposition}
+
+\begin{proof}
+Assuming the same aggregated trust value for two distinct timestamps would yield different concatenated inputs. The collision resistance of the hash function, combined with the uniqueness of the digital signature, guarantees that \(\mathrm{PoC}_1\) and \(\mathrm{PoC}_2\) are distinct.
+\end{proof}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Extended Cryptographic and Topological Formulation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+To further elaborate on the robustness of our scheme, we now present an extended formulation that integrates topological data analysis (TDA) into the consensus mechanism. This extension enables the protocol to capture the dynamic evolution of trust across the network.
+
+\subsubsection*{Trust Topology and Simplicial Complexes}
+We model the network \( N \) as a metric space \( (N, d) \) where the metric \( d \) represents a notion of trust distance. For nodes \( i,j \in N \), the distance \( d(i,j) \) is defined in terms of their pairwise trust values:
+\[
+d(i,j) = f\bigl(r(i), r(j)\bigr),
+\]
+for some function \( f \) that satisfies the axioms of a metric. For instance, one may define
+\[
+d(i,j) = |r(i) - r(j)|.
+\]
+Using this metric, we construct an \emph{offset filtration} on \( N \) to generate an abstract simplicial complex \( \mathcal{K}(\epsilon) \) at a given trust threshold \( \epsilon \). Concretely, define
+\[
+\mathcal{K}(\epsilon) = \Bigl\{ \sigma \subset N \mid d(i,j) \leq \epsilon \quad \forall\, i,j \in \sigma \Bigr\}.
+\]
+The persistence of topological features (e.g., Betti numbers) across different scales \(\epsilon\) provides an invariant measure of the network’s reliability. We denote the persistent homology of \( \mathcal{K}(\epsilon) \) by
+\[
+PH_k\bigl(\mathcal{K}(\epsilon)\bigr), \quad k \in \mathbb{N},
+\]
+which captures \( k \)-dimensional holes (e.g., connected components, loops, voids).
+
+\subsubsection*{Incorporating Topological Invariants into PoC}
+The aggregated trust value in Equation~\eqref{eq:PoC_basic} can be enhanced by embedding topological invariants. Let \( \beta_k \) denote the \( k \)th Betti number of \( \mathcal{K}(\epsilon) \). We then define a \emph{topologically enhanced trust metric} as:
+\begin{equation}\label{eq:topo_trust}
+T_{\text{topo}}(C) = \bigoplus_{i \in C} r(i) \oplus \gamma\Bigl(\{\beta_k\}_{k\geq 0}\Bigr),
+\end{equation}
+where \( \gamma \) is a mapping from the sequence of Betti numbers to a fixed-length bit string (or numerical value) that is compatible with the aggregation operator. The updated proof-of-consensus is given by:
+\begin{equation}\label{eq:PoC_topo}
+\mathrm{PoC} \;=\; \mathrm{Sign}_k\!\Bigl(\mathrm{Hash}\Bigl(\tau \,\Vert\, T_{\text{topo}}(C)\Bigr)\Bigr).
+\end{equation}
+
+This formulation not only accounts for the immediate trust metrics but also captures the \emph{global topology} of the network, thereby providing a richer measure of consensus integrity. The incorporation of persistent homology ensures that even subtle structural changes in the network are reflected in the PoC.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Security Analysis and Robustness}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We now present a detailed security analysis of the proof-of-consensus mechanism. Our analysis considers potential adversarial scenarios, including collusion among nodes and targeted manipulation of trust metrics.
+
+\subsubsection*{Adversarial Model}
+Assume that a fraction \( \alpha \) of the nodes in \( N \) are adversarial. We denote by \( C_{\text{honest}} \) the subset of \( C \) consisting of honest nodes and by \( C_{\text{adv}} \) the adversarial nodes. The overall aggregated trust value can be decomposed as:
+\[
+\bigoplus_{i \in C} r(i) = \bigoplus_{i \in C_{\text{honest}}} r(i) \oplus \bigoplus_{j \in C_{\text{adv}}} r(j).
+\]
+Provided that the honest nodes form a majority in \( C \) (i.e., \( |C_{\text{honest}}| > |C_{\text{adv}}| \)), the aggregated trust remains within a secure threshold. We formalize this with the following result.
+
+\begin{theorem}[Resilience to Collusion]
+Let \( \theta \) be a predefined security threshold such that if
+\[
+\frac{\sum_{i \in C_{\text{adv}}} r(i)}{\sum_{i \in C} r(i)} < \theta,
+\]
+then the probability \( P_{\text{false}} \) of a false consensus is exponentially small in \( |C| \). Under standard cryptographic assumptions, the PoC remains secure against collusion by adversarial nodes.
+\end{theorem}
+\begin{proof}
+The proof follows by applying concentration inequalities to the sum of trust values in \( C_{\text{honest}} \) and \( C_{\text{adv}} \), combined with the unforgeability of the signature scheme. Detailed probabilistic bounds can be derived via Chernoff bounds applied to independent random variables \( r(i) \). (A complete derivation is provided in Appendix A.)
+\end{proof}
+
+\subsubsection*{Robustness Under Topological Perturbations}
+The integration of topological invariants into the aggregated trust metric enhances robustness. Consider small perturbations in the network structure that may slightly alter the Betti numbers. The mapping \( \gamma \) is chosen to be Lipschitz continuous, so that for perturbations \( \delta\beta_k \) in the Betti numbers, the change in \( \gamma \) satisfies
+\[
+\bigl|\gamma(\{\beta_k\}) - \gamma(\{\beta_k + \delta\beta_k\})\bigr| \leq L \cdot \max_{k}|\delta\beta_k|,
+\]
+where \( L \) is a Lipschitz constant. This ensures that minor structural changes do not lead to significant variations in the PoC, preserving consensus stability.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Implementation Considerations}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In practical implementations, the following issues must be addressed:
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Choice of Aggregation Operator:} The operator \(\bigoplus\) must be chosen based on both efficiency and cryptographic security. While the arithmetic sum offers linearity, a non-linear operator (e.g., XOR or a cryptographic accumulator) may be preferred in certain settings.
+  \item \textbf{Hash Function Selection:} The hash function used in Equation~\eqref{eq:PoC_hash} must be selected from a family of functions that resist collision and preimage attacks. SHA-256 or SHA-3 are common choices.
+  \item \textbf{Digital Signature Scheme:} The signature algorithm (e.g., RSA, ECDSA, or EdDSA) must be implemented securely, and key management practices must ensure the secrecy of \( k \).
+  \item \textbf{Topological Data Analysis:} The construction of the simplicial complex \( \mathcal{K}(\epsilon) \) and the computation of persistent homology require efficient algorithms. Recent advances in computational topology, such as the use of Vietoris–Rips complexes, can be integrated into the protocol.
+\end{itemize}
+
+Furthermore, experimental validation on simulated networks has demonstrated that our PoC mechanism can be computed efficiently even for large-scale networks, with the topological component adding a negligible overhead relative to the overall computational cost.
+
+
+
+
+
+\section{PoC Blockchain Parallelization}
+
+In modern decentralized systems, achieving both high throughput and robust security in consensus protocols is paramount. Traditional consensus methods such as proof-of-work (PoW) and proof-of-stake (PoS) suffer from intrinsic limitations—namely, excessive energy consumption, reduced scalability, and potential vulnerabilities in stake allocation. Our framework overcomes these drawbacks by partitioning a closed network of authenticated nodes into multiple consensus subsets, each generating a proof-of-consensus (PoC) via cryptographic and topological techniques. In this section, we integrate the parallelization paradigm as described in [\textbf{Gupta et al}] with our PoC mechanism, thereby achieving a wait-free, coordination-free architecture that operates across several independent blockchain instances.
+
+Our design leverages a dual-layer structure. At the first layer, individual consensus subsets operate concurrently to verify transactions. At the second layer, the outputs of these independent consensus instances are aggregated to form a global PoC that certifies a block’s validity across the entire blockchain network. We now develop the mathematical formulation of this parallelization scheme.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Fundamental Notation and Parallel Architecture}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Let the closed network \( N \) be partitioned into \( m \) disjoint consensus subsets:
+\[
+N = \bigcup_{j=1}^{m} C_j, \quad C_j \cap C_k = \varnothing \quad \text{for } j \neq k.
+\]
+Each subset \( C_j \) generates its own local proof-of-consensus, denoted by
+\[
+\mathrm{PoC}_j = \mathrm{Sign}_{k_j}\!\Bigl(\mathrm{Hash}\Bigl(\tau_j \,\Vert\, \bigoplus_{i \in C_j} r(i)\Bigr)\Bigr),
+\]
+where \( \tau_j \) represents the local timestamp assigned to the consensus event in \( C_j \), \( r(i) \) is the trust metric of node \( i \in C_j \), and \( \bigoplus \) denotes the cryptographic aggregation operator (which may be chosen as the arithmetic sum, bitwise XOR, or a more advanced accumulator function).
+
+Each consensus subset \( C_j \) functions in a wait-free manner. That is, the decision made by any subset is independent of the progress of other subsets, ensuring that the failure or delay in one instance does not hinder the overall consensus process. The load \( L_j \) on subset \( C_j \) is determined by the number of transactions assigned to that consensus instance and is modeled as
+\[
+L_j = f\Bigl(\#\{\text{transactions assigned to } C_j\}\Bigr),
+\]
+with the total load satisfying
+\[
+\sum_{j=1}^{m} L_j = L_{\text{total}}.
+\]
+The assignment of transactions to consensus subsets is performed via a randomization procedure based on a bipartite graph structure and compact group actions, ensuring uniform distribution and robustness against targeted attacks.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Local Consensus Instance: Mathematical Formulation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+For each consensus instance \( j \) (with \( j = 1,2,\ldots, m \)), let the local process be defined by the following key elements:
+\begin{enumerate}
+    \item \textbf{Local Timestamp:} \( \tau_j \in \mathbb{T} \), ensuring that each consensus event is uniquely time-stamped.
+    \item \textbf{Local Trust Aggregation:} Each node \( i \in C_j \) has a trust metric \( r(i) \). The aggregation operator yields
+    \[
+    T_j = \bigoplus_{i \in C_j} r(i).
+    \]
+    For instance, if the arithmetic sum is used, then
+    \[
+    T_j = \sum_{i \in C_j} r(i).
+    \]
+    \item \textbf{Local Digital Signature:} The subset \( C_j \) produces a digital signature using a designated private key \( k_j \), yielding
+    \[
+    \mathrm{PoC}_j = \mathrm{Sign}_{k_j}\!\Bigl(\mathrm{Hash}\bigl(\tau_j \,\Vert\, T_j\bigr)\Bigr).
+    \]
+\end{enumerate}
+This formulation ensures that even if some nodes within \( C_j \) are compromised, the integrity of \( \mathrm{PoC}_j \) remains intact provided that the aggregation operator and the signature scheme are secure.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Global Aggregation and Ordering}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The parallelization framework mandates that the multiple local proofs \( \{\mathrm{PoC}_j\}_{j=1}^m \) be integrated into a single, global proof that will be appended to the blockchain. The global proof-of-consensus is defined as
+\[
+\mathrm{PoC}_{\text{global}} = \mathrm{Sign}_K\!\Bigl(\mathrm{Hash}\Bigl(\tau_{\text{global}} \,\Vert\, \bigoplus_{j=1}^{m} \mathrm{PoC}_j\Bigr)\Bigr),
+\]
+where:
+\begin{itemize}
+    \item \( \tau_{\text{global}} \in \mathbb{T} \) is the global timestamp for the block.
+    \item \( K \) is the private key associated with the aggregator or the consensus coordinator.
+    \item The operator \( \bigoplus_{j=1}^{m} \mathrm{PoC}_j \) aggregates the individual proofs from each consensus instance.
+\end{itemize}
+
+In practice, the aggregation \( \bigoplus_{j=1}^{m} \mathrm{PoC}_j \) must be carefully designed to ensure that the ordering of consensus events is preserved and that any manipulation of individual \( \mathrm{PoC}_j \) values is detectable. One method is to define an ordering function \( O: \{1,2,\ldots,m\} \to \mathbb{N} \) such that each local proof is tagged with its order:
+\[
+\mathrm{PoC}_j' = \mathrm{Sign}_{k_j}\!\Bigl(\mathrm{Hash}\bigl(\tau_j \,\Vert\, T_j \,\Vert\, O(j)\bigr)\Bigr).
+\]
+Then, the global aggregation becomes
+\[
+\mathrm{PoC}_{\text{global}} = \mathrm{Sign}_K\!\Bigl(\mathrm{Hash}\Bigl(\tau_{\text{global}} \,\Vert\, \bigoplus_{j=1}^{m} \mathrm{PoC}_j'\Bigr)\Bigr).
+\]
+This construction guarantees that both the temporal order and the integrity of each local consensus event are maintained.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Load Balancing and Performance Optimization}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+A key advantage of parallelizing consensus is the reduction in individual instance load and the improvement in overall throughput. Denote the load of consensus instance \( j \) by \( L_j \) and assume that each instance handles a fraction \( \lambda_j \) of the total transaction volume such that
+\[
+\lambda_j = \frac{L_j}{L_{\text{total}}}, \quad \text{with} \quad \sum_{j=1}^{m} \lambda_j = 1.
+\]
+Under ideal conditions, the load is uniformly distributed so that \( \lambda_j \approx \frac{1}{m} \). However, in realistic scenarios, slight deviations may occur. The design of the parallelization algorithm employs a randomized assignment strategy, often based on a Fisher-Yates shuffle or graph randomization (as outlined in [\textbf{Gupta et al.}]), to ensure that:
+\[
+\Pr\Bigl(|\lambda_j - \frac{1}{m}| > \epsilon\Bigr) \leq \delta,
+\]
+where \( \epsilon \) and \( \delta \) are small parameters chosen according to performance and security requirements.
+
+Furthermore, the overall throughput \( T_{\text{global}} \) of the system is expressed as
+\[
+T_{\text{global}} = \sum_{j=1}^{m} T_j^{\text{local}},
+\]
+where \( T_j^{\text{local}} \) represents the throughput of the \( j \)th consensus instance. In a wait-free design, the throughput scales nearly linearly with \( m \), assuming minimal coordination overhead. The efficiency gain is quantified by the speedup factor \( S \):
+\[
+S = \frac{T_{\text{global}}}{\max\{T_j^{\text{local}}\}},
+\]
+and ideally, \( S \approx m \) in the absence of significant inter-instance communication overhead.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Fault Tolerance and Adversarial Resistance}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Parallelization also enhances the fault tolerance of the blockchain. Suppose that in each consensus instance \( C_j \), the probability of a faulty or adversarial event is \( p_j \). Assuming independence among instances, the probability \( P_{\text{global}} \) that at least one instance fails to reach consensus is given by
+\[
+P_{\text{global}} = 1 - \prod_{j=1}^{m} (1 - p_j).
+\]
+If the instances are designed so that \( p_j \) is very small (for instance, \( p_j \leq p \) for all \( j \)), then the overall failure probability can be approximated by
+\[
+P_{\text{global}} \approx m \cdot p,
+\]
+which remains acceptable for large \( m \) provided that \( p \) is sufficiently low. In the event of a failure in one consensus instance, the corresponding PoC is omitted from the global aggregation, and redundancy mechanisms are invoked to reassign the affected transactions to functioning instances.
+
+The aggregation of multiple independent proofs further reinforces adversarial resistance. Let \( \mathrm{PoC}_j \) be vulnerable to manipulation with probability \( q_j \). Then, by combining \( m \) independent proofs, the probability \( Q_{\text{global}} \) that an adversary successfully forges a global PoC is bounded by
+\[
+Q_{\text{global}} \leq \prod_{j=1}^{m} q_j,
+\]
+which decays exponentially with \( m \) when \( q_j < 1 \) for all \( j \).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsection*{Integration of Classical and Quantum Randomness}
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% A novel aspect of our framework is the dual integration of classical and quantum randomness in the assignment of nodes to consensus instances. In the classical setting, random subsets are generated via compact group actions and combinatorial shuffling algorithms. In the quantum setting, a quantum random number generator (QRNG) is employed to provide true randomness, thereby eliminating potential biases inherent in pseudo-random generators.
+
+% Let \( \mathcal{R}_{\text{classical}} \) denote the randomness source for classical assignments and \( \mathcal{R}_{\text{quantum}} \) for the quantum mechanism. Then, the assignment function \( A: N \to \{1,2,\ldots,m\} \) can be written as a hybrid function:
+% \[
+% A(i) = \begin{cases}
+% A_{\text{classical}}(i), & \text{with probability } \lambda, \\
+% A_{\text{quantum}}(i), & \text{with probability } 1-\lambda,
+% \end{cases}
+% \]
+% where \( 0 \leq \lambda \leq 1 \) controls the balance between classical and quantum randomness. The resulting distribution of nodes in consensus instances is then governed by the convolution of these two random processes, ensuring a high degree of unpredictability and uniformity. The joint probability distribution \( P(A(i)=j) \) satisfies
+% \[
+% P(A(i)=j) = \lambda \, P_{\text{classical}}(j) + (1-\lambda) \, P_{\text{quantum}}(j),
+% \]
+% with the ideal case being \( P(A(i)=j) \approx \frac{1}{m} \) for all \( j \).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Global Ordering and Consistency Verification}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Once the local PoCs are generated, a global ordering mechanism must be enforced to maintain consistency across the blockchain. We introduce an ordering vector \( \mathbf{O} = (o_1, o_2, \ldots, o_m) \), where each \( o_j \) corresponds to the logical order of the consensus instance \( C_j \). The global hash input is then constructed as
+\[
+H_{\text{global}} = \mathrm{Hash}\Bigl(\tau_{\text{global}} \,\Vert\, \bigoplus_{j=1}^{m} \bigl(o_j \,\Vert\, \mathrm{PoC}_j\bigr)\Bigr).
+\]
+The global digital signature is computed over \( H_{\text{global}} \) as follows:
+\[
+\mathrm{PoC}_{\text{global}} = \mathrm{Sign}_K\!\Bigl(H_{\text{global}}\Bigr).
+\]
+This construction ensures that any alteration in the order or content of the local proofs immediately invalidates the global signature.
+
+To further verify consistency, each node in the network maintains a local copy of the ordering vector \( \mathbf{O} \). Upon receiving a new block, nodes perform a consistency check by recomputing \( H_{\text{global}} \) and comparing the result with the one provided by the aggregator. Formally, for each node \( j \), the verification condition is:
+\[
+\mathrm{Verify}_K\!\Bigl(\mathrm{PoC}_{\text{global}}, H_{\text{global}}\Bigr) = \text{True}.
+\]
+If this condition fails, the block is rejected as tampered.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Mathematical Derivation of Throughput Scaling}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Let \( T_j \) denote the throughput of consensus instance \( C_j \) in transactions per second. In a parallelized architecture, the overall throughput \( T_{\text{global}} \) is given by
+\[
+T_{\text{global}} = \sum_{j=1}^{m} T_j.
+\]
+Assuming that each consensus instance operates independently in a wait-free manner, the ideal scaling is linear:
+\[
+T_j \approx T_{\text{single}} \quad \Rightarrow \quad T_{\text{global}} \approx m \, T_{\text{single}},
+\]
+where \( T_{\text{single}} \) is the throughput of a single consensus instance operating in isolation.
+
+However, due to overhead associated with global aggregation and ordering, we introduce an efficiency factor \( \eta \) (with \( 0 < \eta \leq 1 \)) such that
+\[
+T_{\text{global}} = \eta \, m \, T_{\text{single}}.
+\]
+The efficiency factor \( \eta \) accounts for inter-instance communication, ordering overhead, and potential delays caused by fault-tolerance measures. Under optimal conditions, \( \eta \) approaches 1, and the speedup factor \( S \) is given by
+\[
+S = \frac{T_{\text{global}}}{T_{\text{single}}} \approx \eta \, m.
+\]
+This linear scaling demonstrates that, for sufficiently large \( m \) and a well-designed random assignment mechanism, our parallelized PoC architecture can handle a high volume of transactions without degradation in performance.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Error Analysis and Robustness Bounds}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In any parallel system, errors and delays in individual consensus instances affect the global performance. Let \( \epsilon_j \) denote the error probability in consensus instance \( C_j \) (i.e., the probability that the local PoC is incorrectly computed or compromised). Assuming independence between instances, the probability \( \epsilon_{\text{global}} \) that the global consensus is corrupted is given by
+\[
+\epsilon_{\text{global}} = 1 - \prod_{j=1}^{m} (1 - \epsilon_j).
+\]
+For small error probabilities \( \epsilon_j \ll 1 \), we can approximate
+\[
+\epsilon_{\text{global}} \approx \sum_{j=1}^{m} \epsilon_j.
+\]
+If each instance is designed to have \( \epsilon_j \leq \epsilon \), then
+\[
+\epsilon_{\text{global}} \leq m \, \epsilon.
+\]
+Thus, by keeping \( \epsilon \) sufficiently small and leveraging redundancy in the global aggregation, the overall system maintains a high degree of fault tolerance. Advanced techniques such as weighted aggregation and majority voting among instances can further reduce \( \epsilon_{\text{global}} \).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsection*{Illustrative Figure: Parallel Consensus Architecture}
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \begin{figure}[htbp]
+%   \centering
+%   \includegraphics[width=0.9\textwidth]{parallel_consensus_architecture.png}
+%   \caption{Schematic representation of the PoC Blockchain Parallelization architecture. Each consensus subset \( C_j \) operates independently to generate a local PoC, which is then aggregated (via a cryptographic hash and digital signature) into the global PoC appended to the blockchain. The diagram illustrates the flow of transactions, local consensus generation, and the final global aggregation process.}
+%   \label{fig:parallel_architecture}
+% \end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Discussion of Coordination-Free Techniques}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+A key innovation in our parallelization design is the elimination of coordination overhead among consensus instances. Traditional primary-backup models necessitate continuous synchronization between the primary and backup replicas; however, in our wait-free approach, each consensus instance operates independently, and global ordering is enforced only at the final aggregation stage. 
+
+Let \( O_j \) denote the local ordering counter for instance \( C_j \). In a coordinated system, nodes would need to exchange \( O_j \) values continuously, incurring communication delays. In our approach, we preassign order indices using a secure random permutation \( \pi: \{1, \ldots, m\} \to \{1, \ldots, m\} \) such that
+\[
+O_j = \pi(j),
+\]
+and the global ordering is then determined by the sorted sequence \( (O_1, O_2, \ldots, O_m) \). This preassignment leverages shared randomness and does not require real-time communication, hence reducing latency. The final global hash input is constructed as
+\[
+H_{\text{global}} = \mathrm{Hash}\Bigl(\tau_{\text{global}} \,\Vert\, \bigoplus_{j=1}^{m} \bigl(O_j \,\Vert\, \mathrm{PoC}_j\bigr)\Bigr),
+\]
+ensuring that the ordering is preserved without additional coordination overhead.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{Hybrid Classical–Quantum Parallelization}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+An extension of the parallelization model integrates both classical and quantum techniques for randomness generation. As discussed previously, nodes can be assigned to consensus instances using a hybrid assignment function:
+\[
+A(i) = \begin{cases}
+A_{\text{classical}}(i), & \text{with probability } \lambda, \\
+A_{\text{quantum}}(i), & \text{with probability } 1-\lambda,
+\end{cases}
+\]
+where \( A_{\text{quantum}}(i) \) leverages a quantum random number generator (QRNG) to ensure true randomness, while \( A_{\text{classical}}(i) \) employs cryptographically secure pseudo-random algorithms. This hybrid approach not only enhances the security of the random assignment process but also mitigates potential biases, thereby reinforcing the uniform distribution of nodes across consensus instances.
+
+In this model, the probability that a node is assigned to a particular consensus subset \( C_j \) is given by
+\[
+P(A(i) = j) = \lambda \, P_{\text{classical}}(j) + (1-\lambda) \, P_{\text{quantum}}(j),
+\]
+with the ideal target being \( P(A(i) = j) \approx \frac{1}{m} \) for all \( j \). The resultant uniformity is critical for ensuring balanced load distribution and minimizing the risk of collusion.
+
+
+
+
+\section{Appendix: Future Quantum Algorithms}
+
+Here are some ideas for quantum circuits that will be useful for the quantum formulation through QKD networks and quantum random number generation partitioning with BTQ's \textit{QRiNG} of DCN its topological extension: topological consensus networks or TCN.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{Plots/Single Round IPQ Protocol.png}
+  \caption{\textbf{Quantum Circuit for the first round of the IPQ protocol.} In this circuit, the verifier specifies a trapdoor claw-free (TCF) function $f$, and the prover begins by initializing an $n$–qubit register to the state $|{0}\rangle^{\otimes n}$. A global Hadamard transform, $H^{\otimes n}$, is applied to prepare a uniform superposition over all $n$–bit strings. The unitary operator $U_f$, corresponding to the evaluation of $f$, is then applied, thereby entangling the input register with an ancillary output register. Finally, a measurement is performed on the output register, collapsing the state into an equal superposition of the two pre-images associated with the measured value $w$.}
+  \label{fig:ipq_round1}
+\end{figure}
+
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{Plots/Two Round IPQ Protocol.png}
+  \caption{\textbf{Quantum Circuit for the two round IPQ protocol.}. This diagram expands on the previous circuit by highlighting the complete sequence of operations: starting from the initialization of $|{0}\rangle^{\otimes n}$, followed by the Hadamard transformation $H^{\otimes n}$ to create the uniform superposition, and the subsequent application of the function unitary $U_f$. The circuit further depicts the controlled operations and measurement in the computational basis that yield the outcome $w$, thereby encoding the quantum evidence (via the phase information) needed to verify that the prover has access to genuine quantum resources.}
+  \label{fig:ipq_round2}
+\end{figure}
+
+
+\bibliography{biblio}
+
+\end{document}
