@@ -1,5 +1,3 @@
-![BTQ Logo](../Logos/BTQ\ logo_extended.png)
-
 # BTQ Algorithms Hub
 
 A comprehensive interface and visualizer for BTQ's classical and quantum algorithms, providing a unified way to access, run, and visualize all the algorithms from both the Classical Algorithms and Quantum Algorithms modules.
