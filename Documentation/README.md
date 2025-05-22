@@ -53,7 +53,7 @@ Our framework unifies classical and quantum topological approaches to achieve a 
 
 ### 2.1 Discrete Consensus Networks
 
-We model a network of nodes as a discrete set residing in a metric space $(M,\rho)$, where each node set $N\subset M$ is a compact subset. The metric encodes trust relationships between nodes:
+We model a network of nodes as a discrete set residing in a metric space $$(M,\rho)$$, where each node set $N\subset M$ is a compact subset. The metric encodes trust relationships between nodes:
 
 $$
   \rho(x,y)\;=\;\text{distrust of node }x\text{ in }y
