@@ -54,7 +54,7 @@ $$0 = t_0 < t_1 < \cdots < t_N = T,$$
 
 and form complexes $$\mathfrak{C}_k = \mathfrak{C}(t_k)$$. The *history complex* is then the union of prisms
 
-$$\mathrm{H}_N(\mathcal{N}) = \bigcup_{k=1}^N \bigl[t_{k-1},t_k\bigr] \times \mathfrak{C}_k.$$
+$$\text{Hist}_N(\mathcal{N}) = \bigcup_{k=1}^N \bigl[t_{k-1},t_k\bigr] \times \mathfrak{C}_k.$$
 
 This discrete approximation allows us to capture the manifold structure through a sequence of simplicial slices. The history of a network is not uniquely determined by its boundary conditions alone—there exists a degeneracy where different histories can have identical boundary conditions. This reflects real-world scenarios where networks may split and recombine through various intermediate states but arrive at the same final configuration.
 
