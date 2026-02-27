@@ -5,6 +5,9 @@
 
 <div align="center">
 
+[![CI](https://github.com/btq-ag/Leonne/actions/workflows/ci.yml/badge.svg)](https://github.com/btq-ag/Leonne/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![BTQ Core](https://img.shields.io/badge/BTQ-Core-ffd700?style=flat&logo=github)](https://github.com/btq-ag)
 [![Léonne Stable](https://img.shields.io/badge/L%C3%A9onne-Stable-brightgreen?style=flat&logo=abstract&logoColor=white)](https://github.com/btq-ag/Leonne)
 [![BTQ Site](https://img.shields.io/badge/BTQ-Site-0052cc?style=flat&logo=digitalocean&logoColor=white)](https://www.btq.com/)
@@ -17,7 +20,10 @@ Léonne (IPA: /leɪˈɔn/) is a collection of topological algorithms that comput
 
 - [Getting Started](#getting-started)
 - [Features](#features)
+- [Architecture](#architecture)
 - [Installation](#installation)
+- [Testing](#testing)
+- [Contributing](#contributing)
 - [License](#license)
 
 
@@ -40,10 +46,45 @@ Léonne enables you to run consensus and network partitioning algorithms for a c
 ![Blockchain](https://github.com/btq-ag/Leonne/blob/main/Plots/blockchain_network_visualization.gif)
 ![Network Evolution](https://github.com/btq-ag/Leonne/blob/main/Plots/network_evolution_3d_simplices_v5.gif)
 
+## Architecture
+
+| Module | Description |
+|--------|-------------|
+| [Classical Algorithms](Classical%20Algorithms/) | Trust partitioning, consensus iterations, blockchain simulation, community optimization, generalized permutations, and network graph generation |
+| [Quantum Algorithms](Quantum%20Algorithms/) | Quantum-enhanced counterparts with QRNG, QKD, entanglement simulation, and post-quantum key generation |
+| [Documentation](Documentation/) | Mathematical foundations: simplicial complexes, persistent homology, cobordism theory, and TQFT extensions |
+| [Extension](Extension/) | Continuous-time cobordism formulations and persistent homology of network histories |
+| [Visualizer](Visualizer/) | Unified hub interfaces and interactive CLIs for running and visualizing all algorithms |
+
 ## Installation
 
-All of Léonne's protocols can be run locally in Windows, Linux and macOS given local blockchain simulations with Python. See [Getting Started](#getting-started) for where to begin.
+```bash
+pip install -e .
+```
+
+For topological analysis features (persistent homology, Betti numbers):
+
+```bash
+pip install -e ".[topology]"
+```
+
+For all optional dependencies:
+
+```bash
+pip install -e ".[all]"
+```
+
+## Testing
+
+```bash
+pip install -e ".[dev]"
+pytest
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-Léonne is released under the license and copyright of _BTQ Technologies_. You may use the code as you please as long as you adhere to its conditions. You can find a copy of the license text here: [LICENSE](https://github.com/btq-ag/Leonne/License).
+Léonne is released under the [MIT License](LICENSE). Copyright (c) 2024-2026 BTQ Technologies.

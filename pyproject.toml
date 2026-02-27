@@ -1,0 +1,80 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "leonne"
+version = "1.0.0"
+description = "Topological algorithms for modular consensus networks with post-quantum cryptographic proof"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Jeffrey Morais", email = "jeffrey@btq.com"},
+]
+keywords = [
+    "blockchain",
+    "consensus",
+    "cryptography",
+    "post-quantum",
+    "topological-data-analysis",
+    "trust-partitioning",
+    "network-analysis",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Security :: Cryptography",
+]
+
+dependencies = [
+    "numpy>=1.24",
+    "networkx>=3.0",
+    "matplotlib>=3.7",
+    "sympy>=1.12",
+    "scipy>=1.10",
+    "tqdm>=4.65",
+    "cryptography>=41.0",
+]
+
+[project.optional-dependencies]
+topology = [
+    "gudhi>=3.8",
+]
+analysis = [
+    "seaborn>=0.12",
+    "pandas>=2.0",
+]
+all = [
+    "gudhi>=3.8",
+    "seaborn>=0.12",
+    "pandas>=2.0",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/btq-ag/Leonne"
+Repository = "https://github.com/btq-ag/Leonne"
+Issues = "https://github.com/btq-ag/Leonne/issues"
+Documentation = "https://github.com/btq-ag/Leonne/tree/main/Documentation"
+
+[project.scripts]
+leonne-classical = "Visualizer.visualizer_cli:main"
+leonne-quantum = "Visualizer.quantum_visualizer_cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-v --tb=short"
+
+[tool.setuptools]
+packages = ["Visualizer", "Extension"]
